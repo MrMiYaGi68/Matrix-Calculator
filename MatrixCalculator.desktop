@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Matrix Calculator
+GenericName=Calculator
+Comment=Scientific calculator with Matrix style
+Exec=matrix-calculator
+Icon=matrix-calculator-icon
+Terminal=false
+Categories=Utility;Calculator;
+StartupNotify=true
+StartupWMClass=MatrixCalculator
+Keywords=calculator;math;scientific;matrix;

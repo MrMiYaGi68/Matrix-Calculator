@@ -1,0 +1,33 @@
+{
+  "id": "io.github.MrMiYaGi68.MatrixCalculator",
+  "runtime": "org.kde.Platform",
+  "runtime-version": "6.9",
+  "sdk": "org.kde.Sdk",
+  "command": "matrix-calculator",
+  "finish-args": [
+    "--share=ipc",
+    "--socket=fallback-x11",
+    "--socket=wayland",
+    "--device=dri"
+  ],
+  "modules": [
+    {
+      "name": "matrix-calculator",
+      "buildsystem": "simple",
+      "build-commands": [
+        "python3 -m pip install --no-build-isolation --no-deps --prefix=/app .",
+        "install -Dm644 io.github.MrMiYaGi68.MatrixCalculator.desktop /app/share/applications/io.github.MrMiYaGi68.MatrixCalculator.desktop",
+        "install -Dm644 io.github.MrMiYaGi68.MatrixCalculator.metainfo.xml /app/share/metainfo/io.github.MrMiYaGi68.MatrixCalculator.metainfo.xml",
+        "install -Dm644 assets/matrix-calculator-icon.svg /app/share/icons/hicolor/scalable/apps/io.github.MrMiYaGi68.MatrixCalculator.svg",
+        "install -Dm644 assets/matrix-calculator-icon.png /app/share/icons/hicolor/256x256/apps/io.github.MrMiYaGi68.MatrixCalculator.png"
+      ],
+      "sources": [
+        {
+          "type": "archive",
+          "url": "https://github.com/MrMiYaGi68/Matrix-Calculator/releases/download/v1.0.0/matrix_calculator-1.0.0.tar.gz",
+          "sha256": "a38b84a05206fbf8e3ba5e07c3fb620cb96a7174cc0957c29058ec2d813a6e5a"
+        }
+      ]
+    }
+  ]
+}

@@ -1,11 +1,13 @@
 __pycache__/
-*.pyc
-*.pyo
-build/
-dist/
-*.egg-info/
-.release-venv/
-.venv/
-*.whl
-*.tar.gz
-*.zip
+*.py[cod]
+*$py.class
+
+.coverage
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+*.log
+
+# Accidental nested project copy. The runnable app lives at the repository root.
+/meine-app/

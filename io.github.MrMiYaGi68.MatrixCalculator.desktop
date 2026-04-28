@@ -1,0 +1,16 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Matrix Calculator
+GenericName=Calculator
+GenericName[de]=Taschenrechner
+Comment=Scientific calculator with local math assistant
+Comment[de]=Wissenschaftlicher Taschenrechner mit lokalem Mathe-Assistenten
+Exec=matrix-calculator
+Icon=io.github.MrMiYaGi68.MatrixCalculator
+Terminal=false
+Categories=Utility;Calculator;
+StartupNotify=true
+StartupWMClass=MatrixCalculator
+Keywords=calculator;math;scientific;matrix;assistant;
+Keywords[de]=Taschenrechner;Mathe;wissenschaftlich;Matrix;Assistent;

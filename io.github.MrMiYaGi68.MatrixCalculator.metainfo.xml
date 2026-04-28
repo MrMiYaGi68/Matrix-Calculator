@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.MrMiYaGi68.MatrixCalculator</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>Matrix Calculator</name>
+  <summary>Scientific Qt calculator with local natural-language math help</summary>
+  <developer id="io.github.mrmiyagi68">
+    <name>Orhan</name>
+  </developer>
+  <update_contact>miyagi068@gmail.com</update_contact>
+  <launchable type="desktop-id">io.github.MrMiYaGi68.MatrixCalculator.desktop</launchable>
+  <provides>
+    <binary>matrix-calculator</binary>
+  </provides>
+  <supports>
+    <control>keyboard</control>
+    <control>pointing</control>
+  </supports>
+  <url type="homepage">https://github.com/MrMiYaGi68/Matrix-Calculator</url>
+  <url type="bugtracker">https://github.com/MrMiYaGi68/Matrix-Calculator/issues</url>
+  <description>
+    <p>Matrix Calculator is a scientific calculator for Linux built with PySide6, combining a modern Qt interface with fast everyday math and optional assistant features.</p>
+    <p>It combines a classic basic calculator, an extended scientific layout, local natural-language math handling, history, live previews and optional OpenAI API integration.</p>
+    <p>The default experience stays local and works without signing in. Online AI remains optional and only activates when the user provides an API key.</p>
+  </description>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/MrMiYaGi68/Matrix-Calculator/main/docs/screenshots/matrix-calculator-graphite.png</image>
+      <caption>Graphite theme with calculator and assistant side by side</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/MrMiYaGi68/Matrix-Calculator/main/docs/screenshots/matrix-calculator-green.png</image>
+      <caption>Alternative green theme with the assistant answer panel open</caption>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="1.0.0" date="2026-04-27"/>
+  </releases>
+</component>
