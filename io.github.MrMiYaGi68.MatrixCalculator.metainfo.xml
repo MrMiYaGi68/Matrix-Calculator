@@ -19,6 +19,7 @@
   </supports>
   <url type="homepage">https://github.com/MrMiYaGi68/Matrix-Calculator</url>
   <url type="bugtracker">https://github.com/MrMiYaGi68/Matrix-Calculator/issues</url>
+  <url type="vcs-browser">https://github.com/MrMiYaGi68/Matrix-Calculator</url>
   <description>
     <p>Matrix Calculator is a scientific calculator for Linux built with PySide6, combining a modern Qt interface with fast everyday math and optional assistant features.</p>
     <p>It combines a classic basic calculator, an extended scientific layout, local natural-language math handling, history, live previews and optional OpenAI API integration.</p>
@@ -26,11 +27,11 @@
   </description>
   <screenshots>
     <screenshot type="default">
-      <image>https://raw.githubusercontent.com/MrMiYaGi68/Matrix-Calculator/main/docs/screenshots/matrix-calculator-graphite.png</image>
+      <image>https://raw.githubusercontent.com/MrMiYaGi68/Matrix-Calculator/v1.0.0/docs/screenshots/matrix-calculator-graphite.png</image>
       <caption>Graphite theme with calculator and assistant side by side</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/MrMiYaGi68/Matrix-Calculator/main/docs/screenshots/matrix-calculator-green.png</image>
+      <image>https://raw.githubusercontent.com/MrMiYaGi68/Matrix-Calculator/v1.0.0/docs/screenshots/matrix-calculator-green.png</image>
       <caption>Alternative green theme with the assistant answer panel open</caption>
     </screenshot>
   </screenshots>
