@@ -1,7 +1,7 @@
 include MatrixCalculator.desktop
 include io.github.MrMiYaGi68.MatrixCalculator.desktop
 include io.github.MrMiYaGi68.MatrixCalculator.metainfo.xml
-include io.github.MrMiYaGi68.MatrixCalculator.json
+exclude io.github.MrMiYaGi68.MatrixCalculator.json
 include LICENSE
 include README.md
 include CHANGELOG.md
