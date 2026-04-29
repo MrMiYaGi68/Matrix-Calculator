@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "matrix-calculator"
+version = "1.0.1"
+description = "Scientific PySide6 desktop calculator with local natural-language math support and optional OpenAI API integration."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [
+  { name = "Orhan" }
+]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: X11 Applications :: Qt",
+  "Intended Audience :: End Users/Desktop",
+  "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Mathematics",
+]
+dependencies = ["PySide6>=6.6"]
+
+[project.optional-dependencies]
+ai = ["requests>=2.31"]
+dev = ["requests>=2.31"]
+
+[project.scripts]
+matrix-calculator = "calculator:main"
+
+[tool.setuptools]
+py-modules = ["calculator"]
+packages = ["core", "core.natural_query", "ui"]
