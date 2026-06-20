@@ -74,6 +74,8 @@ class SecurityReleaseTest(unittest.TestCase):
         project = pyproject["project"]
         self.assertEqual(project["version"], "1.0.1")
         self.assertIn("Development Status :: 5 - Production/Stable", project["classifiers"])
+        self.assertEqual(project["license"], "GPL-3.0-or-later")
+        self.assertEqual(project["license-files"], ["LICENSE"])
         self.assertIn("PySide6>=6.6", project["dependencies"])
         self.assertNotIn("requests>=2.31", project["dependencies"])
 
