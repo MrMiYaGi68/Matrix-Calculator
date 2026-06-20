@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "matrix-calculator"
-version = "1.0.1"
+version = "1.0.2"
 description = "Scientific PySide6 desktop calculator with local natural-language math support and optional OpenAI API integration."
 readme = "README.md"
 requires-python = ">=3.11"

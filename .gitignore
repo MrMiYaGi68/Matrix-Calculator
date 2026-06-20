@@ -9,5 +9,9 @@ __pycache__/
 
 *.log
 
+build/
+dist/
+*.egg-info/
+
 # Accidental nested project copy. The runnable app lives at the repository root.
 /meine-app/

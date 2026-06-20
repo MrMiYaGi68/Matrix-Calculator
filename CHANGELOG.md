@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.2 - 2026-06-20
+
+- Improved the calculator UI hierarchy for compact and expanded assistant use.
+- Added explicit visual states for local calculation, AI status, warnings,
+  errors and recovery after clearing.
+- Added an offscreen UI smoke test for compact mode, expanded assistant mode,
+  error recovery and rich-text font-stack hygiene.
+- Updated CI actions and packaging metadata to remove Node.js and build
+  warnings.
+
 ## 1.0.1 - 2026-04-29
 
 - Prepared a follow-up release so the source package, Discover metadata and
