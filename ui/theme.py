@@ -192,9 +192,44 @@ def build_stylesheet(theme_name: str) -> str:
             padding: 7px 10px;
             font-size: 13px;
         }
+        QLabel#statusBarLabel[state="info"] {
+            color: $blue_text;
+            background: $blue_bg;
+            border: 1px solid $blue_border;
+        }
+        QLabel#statusBarLabel[state="success"] {
+            color: $text;
+            background: $chip_good;
+            border: 1px solid $blue_border;
+        }
+        QLabel#statusBarLabel[state="warning"] {
+            color: $text;
+            background: $status_bg;
+            border: 1px solid $accent_border;
+        }
+        QLabel#statusBarLabel[state="error"] {
+            color: $text;
+            background: $danger_soft;
+            border: 1px solid $clear_border;
+        }
         QLabel#previewLabel {
             color: $muted;
             font-size: 13px;
+        }
+        QLabel#previewLabel[state="info"] {
+            color: $blue_text;
+        }
+        QLabel#previewLabel[state="success"] {
+            color: $soft_text;
+            font-weight: 650;
+        }
+        QLabel#previewLabel[state="warning"] {
+            color: $accent_border;
+            font-weight: 650;
+        }
+        QLabel#previewLabel[state="error"] {
+            color: $clear_hover;
+            font-weight: 700;
         }
         QLabel#expressionLabel {
             color: $muted;
@@ -309,12 +344,31 @@ def build_stylesheet(theme_name: str) -> str:
         }
         QLabel[chip="true"] {
             border-radius: 9px;
-            padding: 7px 11px;
+            padding: 6px 10px;
             font-size: 12px;
             font-weight: 600;
             min-height: 28px;
         }
-        QPushButton#ghostButton, QPushButton#toolButton {
+        QPushButton#modeSegmentButton {
+            background: $button;
+            color: $soft_text;
+            border: 1px solid $button_border;
+            border-radius: 9px;
+            padding: 7px 12px;
+            font-size: 14px;
+            font-weight: 650;
+            min-height: 38px;
+            min-width: 92px;
+        }
+        QPushButton#modeSegmentButton:hover {
+            background: $button_hover;
+        }
+        QPushButton#modeSegmentButton:checked {
+            background: $mode;
+            color: $text;
+            border: 2px solid $mode_border;
+        }
+        QPushButton#ghostButton, QPushButton#toolButton, QPushButton#utilityButton {
             background: $button;
             color: $text;
             border: 1px solid $button_border;
@@ -327,27 +381,32 @@ def build_stylesheet(theme_name: str) -> str:
         QPushButton#toolButton {
             min-width: 150px;
         }
-        QPushButton#ghostButton:hover, QPushButton#toolButton:hover {
+        QPushButton#utilityButton {
+            background: transparent;
+            color: $soft_text;
+            border: 1px solid $border;
+        }
+        QPushButton#ghostButton:hover, QPushButton#toolButton:hover, QPushButton#utilityButton:hover {
             background: $button_hover;
         }
         QPushButton#assistantToggleButton {
-            background: $accent;
-            color: $accent_text;
-            border: 2px solid $accent_border;
+            background: $button;
+            color: $text;
+            border: 1px solid $button_border;
             border-radius: 10px;
             padding: 7px 12px;
             font-size: 14px;
             font-weight: 700;
             min-height: 38px;
-            min-width: 52px;
+            min-width: 118px;
         }
         QPushButton#assistantToggleButton:hover {
-            background: $accent_hover;
+            background: $button_hover;
         }
         QPushButton#assistantToggleButton[assistantVisible="false"] {
             background: $blue_bg;
             color: $blue_text;
-            border: 2px solid $blue_border;
+            border: 1px solid $blue_border;
         }
         QPushButton#primaryButton, QPushButton#solveButton {
             background: $accent;
@@ -361,12 +420,22 @@ def build_stylesheet(theme_name: str) -> str:
             min-width: 120px;
         }
         QPushButton#solveButton {
-            font-size: 18px;
-            font-weight: 800;
-            letter-spacing: 0.01em;
+            background: $button;
+            color: $text;
+            border: 1px solid $button_border;
+            font-size: 16px;
+            font-weight: 750;
         }
-        QPushButton#primaryButton:hover, QPushButton#solveButton:hover {
+        QPushButton#primaryButton:hover {
             background: $accent_hover;
+        }
+        QPushButton#solveButton:hover {
+            background: $button_hover;
+        }
+        QFrame#assistantQueryPanel {
+            background: $status_bg;
+            border: 1px solid $border;
+            border-radius: 12px;
         }
         QTextEdit#queryInput, QPlainTextEdit#queryInput {
             background: $input;
@@ -384,12 +453,27 @@ def build_stylesheet(theme_name: str) -> str:
         }
         QLabel#queryPreview {
             color: $soft_text;
-            background: $raised;
-            border: 1px solid $border;
+            background: transparent;
+            border: 1px solid transparent;
             border-radius: 9px;
             padding: 7px 10px;
             font-size: 13px;
             line-height: 1.35;
+        }
+        QLabel#queryPreview[state="info"] {
+            color: $blue_text;
+            background: $blue_bg;
+            border: 1px solid $blue_border;
+        }
+        QLabel#queryPreview[state="warning"] {
+            color: $text;
+            background: $status_bg;
+            border: 1px solid $accent_border;
+        }
+        QLabel#queryPreview[state="error"] {
+            color: $text;
+            background: $danger_soft;
+            border: 1px solid $clear_border;
         }
         QTextEdit#assistantOutput, QTextBrowser#assistantOutput {
             background: $output;

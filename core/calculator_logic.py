@@ -12,6 +12,13 @@ from core.expression_parser import CalculatorError, ExpressionParser
 from ui.button_config import BUTTON_INSERTIONS
 
 
+def _set_preview(window, text: str, state: str = "neutral") -> None:
+    if hasattr(window, "_set_preview_state"):
+        window._set_preview_state(text, state)
+    else:
+        window.preview_label.setText(text)
+
+
 def handle_button(window, label: str) -> None:
     if label == "2nd":
         window.second_mode = not window.second_mode
@@ -68,7 +75,7 @@ def handle_button(window, label: str) -> None:
         return
     if label == "Rand":
         window.result_label.setText(window._format_number(random.random()))
-        window.preview_label.setText(window._tr("random_value"))
+        _set_preview(window, window._tr("random_value"), "success")
         return
 
     if label in BUTTON_INSERTIONS:
@@ -97,7 +104,7 @@ def clear_all(window) -> None:
     window.expression = ""
     window.just_evaluated = False
     window.result_label.setText("0")
-    window.preview_label.setText(window._tr("ready_input"))
+    _set_preview(window, window._tr("ready_input"), "neutral")
     window._update_display()
 
 
@@ -135,19 +142,19 @@ def evaluate_expression(window) -> None:
         if factorization is None:
             window.expression = formatted
         window.result_label.setText(formatted)
-        window.preview_label.setText(window._tr("result_confirmed"))
+        _set_preview(window, window._tr("result_confirmed"), "success")
         window.just_evaluated = True
         push_history(window, expression, formatted)
         window._update_display()
     except (CalculatorError, OverflowError, ValueError) as exc:
         window.result_label.setText("ERROR")
-        window.preview_label.setText(str(exc))
+        _set_preview(window, str(exc), "error")
 
 
 def update_display(window) -> None:
     window.expression_label.setText(window._pretty_expression(window.expression) or " ")
     if not window.expression:
-        window.preview_label.setText(window._tr("ready_input"))
+        _set_preview(window, window._tr("ready_input"), "neutral")
         window.result_label.setText("0")
         return
     try:
@@ -159,14 +166,17 @@ def update_display(window) -> None:
             if not is_finite_number(preview):
                 raise CalculatorError(window._tr("finite_number_required"))
             formatted = window._format_number(preview)
-        window.preview_label.setText(f"Live: {formatted}")
+        if window.just_evaluated:
+            _set_preview(window, window._tr("result_confirmed"), "success")
+        else:
+            _set_preview(window, f"Live: {formatted}", "info")
         window.result_label.setText(window.result_label.text() if window.just_evaluated else formatted)
     except (CalculatorError, OverflowError, ValueError):
         opens = window.expression.count("(") - window.expression.count(")")
         if opens > 0:
-            window.preview_label.setText(window._tr("waiting_for_closing_parentheses").format(count=opens))
+            _set_preview(window, window._tr("waiting_for_closing_parentheses").format(count=opens), "warning")
         else:
-            window.preview_label.setText(window._tr("building_expression"))
+            _set_preview(window, window._tr("building_expression"), "neutral")
         if not window.just_evaluated:
             window.result_label.setText("0")
 
@@ -283,7 +293,7 @@ def apply_percent_input(window) -> None:
     else:
         percent_value = current_value / 100.0
     window.expression = head + window._format_number(percent_value)
-    window.preview_label.setText(window._tr("percent_adjusted"))
+    _set_preview(window, window._tr("percent_adjusted"), "info")
     window._update_display()
 
 

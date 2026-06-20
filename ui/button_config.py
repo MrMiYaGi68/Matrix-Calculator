@@ -93,6 +93,19 @@ BUTTON_TOOLTIP_KEYS = {
     "n!": "tooltip_factorial",
     "ln": "tooltip_ln",
     "log": "tooltip_log",
+    "sqrt": "tooltip_sqrt",
+    "cbrt": "tooltip_cbrt",
+    "x²": "tooltip_square",
+    "x³": "tooltip_cube",
+    "1/x": "tooltip_inverse",
+    "|x|": "tooltip_abs",
+    "xʸ": "tooltip_power",
+    "π": "tooltip_pi",
+    "e": "tooltip_e",
+    "Ans": "tooltip_ans",
+    "2nd": "tooltip_second",
+    "Deg": "tooltip_degrees",
+    "Rad": "tooltip_radians",
 }
 
 

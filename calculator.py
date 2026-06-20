@@ -298,6 +298,27 @@ class MatrixCalculatorWindow(QMainWindow):
         }
         return labels.get(self.theme_name, "Graphite")
 
+    def _set_visual_state(self, widget, state: str) -> None:
+        if not hasattr(widget, "setProperty"):
+            return
+        widget.setProperty("state", state)
+        if not hasattr(widget, "style"):
+            return
+        widget.style().unpolish(widget)
+        widget.style().polish(widget)
+
+    def _set_preview_state(self, text: str, state: str = "neutral") -> None:
+        self.preview_label.setText(text)
+        self._set_visual_state(self.preview_label, state)
+
+    def _set_ai_status(self, text: str, state: str = "neutral") -> None:
+        self.ai_status.setText(text)
+        self._set_visual_state(self.ai_status, state)
+
+    def _set_ai_preview(self, text: str, state: str = "neutral") -> None:
+        self.ai_live_preview.setText(text)
+        self._set_visual_state(self.ai_live_preview, state)
+
     def _button_role(self, label: str) -> str:
         if label == "AC":
             return "clear"
@@ -340,6 +361,7 @@ class MatrixCalculatorWindow(QMainWindow):
         self.mode_toggle_button.setText("Deg" if self.degrees else "Rad")
         self.mode_chip.setText("DEG" if self.degrees else "RAD")
         self.memory_chip.setText(f"M {self._format_number(self.memory)}")
+        self.memory_chip.setVisible(abs(self.memory) > 1e-12)
         self._refresh_basic_symbol_buttons()
 
     def _refresh_layout_mode(self) -> None:
@@ -365,8 +387,12 @@ class MatrixCalculatorWindow(QMainWindow):
             self.controls_grid.setVerticalSpacing(grid_spacing)
             self.controls_grid.setContentsMargins(outer_margin, outer_margin, outer_margin, outer_margin)
             self.controls_layout.setAlignment(Qt.Alignment() if self.scientific_mode else Qt.AlignCenter)
-        if hasattr(self, "layout_button"):
-            self.layout_button.setText(self._tr("basic_layout") if self.scientific_mode else self._tr("scientific_layout"))
+        if hasattr(self, "basic_mode_button"):
+            self.basic_mode_button.setText(self._tr("basic_layout"))
+            self.basic_mode_button.setChecked(not self.scientific_mode)
+        if hasattr(self, "scientific_mode_button"):
+            self.scientific_mode_button.setText(self._tr("scientific_layout"))
+            self.scientific_mode_button.setChecked(self.scientific_mode)
         self._refresh_basic_symbol_buttons()
 
     def _refresh_basic_symbol_buttons(self) -> None:
@@ -382,7 +408,7 @@ class MatrixCalculatorWindow(QMainWindow):
 
     def _set_layout_mode(self, scientific: bool) -> None:
         self.scientific_mode = scientific
-        self.preview_label.setText(self._tr("scientific_layout_active") if scientific else self._tr("basic_layout_active"))
+        self._set_preview_state(self._tr("scientific_layout_active") if scientific else self._tr("basic_layout_active"), "info")
         self._refresh_layout_mode()
 
     def _tr(self, key: str) -> str:
@@ -396,8 +422,12 @@ class MatrixCalculatorWindow(QMainWindow):
         if hasattr(self, "header_settings_button"):
             self.header_settings_button.setToolTip(self._tr("settings"))
         self.history_button.setText(self._tr("history"))
-        if hasattr(self, "layout_button"):
-            self.layout_button.setText(self._tr("basic_layout") if self.scientific_mode else self._tr("scientific_layout"))
+        if hasattr(self, "smart_chip"):
+            self.smart_chip.setText(self._tr("local_chip"))
+        if hasattr(self, "basic_mode_button"):
+            self.basic_mode_button.setText(self._tr("basic_layout"))
+        if hasattr(self, "scientific_mode_button"):
+            self.scientific_mode_button.setText(self._tr("scientific_layout"))
         self.ai_title.setText(self._tr("assistant_title_html"))
         self.ai_input.setPlaceholderText(self._tr("query_placeholder"))
         self.ai_result.setPlaceholderText(self._tr("assistant_output_placeholder"))
@@ -408,15 +438,15 @@ class MatrixCalculatorWindow(QMainWindow):
         self.clear_ai_button.setText(self._tr("clear_ai_history"))
         self._refresh_ai_toggle_button()
         if not self.ai_messages:
-            self.ai_status.setText(self._tr("ready_local"))
-            self.ai_live_preview.setText(self._tr("live_preview_empty"))
+            self._set_ai_status(self._tr("ready_local"), "neutral")
+            self._set_ai_preview(self._tr("live_preview_empty"), "neutral")
         self.mode_preference.clear()
         self.mode_preference.addItems([self._tr("mode_browser"), self._tr("mode_api")])
         self.mode_preference.setCurrentText(self._assistant_mode_label())
         self.step_checkbox.setText(self._tr("step_by_step"))
         self.context_checkbox.setText(self._tr("chat_context"))
         if not self.expression:
-            self.preview_label.setText(self._tr("ready_input"))
+            self._set_preview_state(self._tr("ready_input"), "neutral")
         self._refresh_button_tooltips()
         self._recreate_localized_dialogs()
         self._refresh_layout_mode()
@@ -591,7 +621,7 @@ class MatrixCalculatorWindow(QMainWindow):
         return extract_numbers(text)
 
     def _update_ai_live_preview(self, text: str) -> None:
-        self.ai_live_preview.setText(self._build_live_query_preview(text))
+        self._set_ai_preview(self._build_live_query_preview(text), "info" if text.strip() else "neutral")
 
     def _build_live_query_preview(self, query: str) -> str:
         return build_live_query_preview(
@@ -778,12 +808,12 @@ class MatrixCalculatorWindow(QMainWindow):
                 "success",
                 self._tr("api_status_success").format(answer=answer),
             )
-            self.ai_status.setText(self._tr("openai_test_success").format(model=chosen_model))
+            self._set_ai_status(self._tr("openai_test_success").format(model=chosen_model), "success")
         except CalculatorError as exc:
             message = str(exc)
             state = "warning" if "Billing" in message or "Guthaben" in message or "Limit" in message else "error"
             self._set_api_status_label(dialog.api_status_browser, state, self._tr("api_status_error").format(message=message))
-            self.ai_status.setText(self._tr("openai_test_failed"))
+            self._set_ai_status(self._tr("openai_test_failed"), state)
 
     def _configure_openai(self, dialog: AssistantSettingsDialog | None = None) -> None:
         value, ok = QInputDialog.getText(
@@ -800,7 +830,7 @@ class MatrixCalculatorWindow(QMainWindow):
                     "system",
                     self._tr("api_key_saved_message").format(model=self.ai_model, test_api=self._tr("test_api"))
                 )
-                self.ai_status.setText(self._tr("api_key_saved_status"))
+                self._set_ai_status(self._tr("api_key_saved_status"), "success")
                 if dialog is not None:
                     self._set_api_status_label(
                         dialog.api_status_browser,
@@ -812,7 +842,7 @@ class MatrixCalculatorWindow(QMainWindow):
                     "system",
                     self._tr("api_key_missing_message")
                 )
-                self.ai_status.setText(self._tr("local_assistant_only"))
+                self._set_ai_status(self._tr("local_assistant_only"), "neutral")
                 if dialog is not None:
                     self._set_api_status_label(
                         dialog.api_status_browser,
@@ -845,6 +875,7 @@ class MatrixCalculatorWindow(QMainWindow):
             apply_dialog=self._apply_settings_dialog,
             clear_dialog=self._clear_settings_dialog,
             set_api_status=self._set_api_status_label,
+            current_theme_label=self._theme_display_name(),
         )
         dialog.show()
         dialog.raise_()
@@ -853,13 +884,16 @@ class MatrixCalculatorWindow(QMainWindow):
     def _apply_settings_dialog(self, dialog: AssistantSettingsDialog) -> None:
         selected_language = dialog.language_select.currentData()
         self.app_language = normalize_language(selected_language)
+        self.theme_name = dialog.theme_select.currentText().strip().lower() or DEFAULT_THEME
+        self._apply_styles()
+        self._render_ai_chat()
         self.assistant_mode = self._normalize_assistant_mode(dialog.mode_select.currentText())
         self.mode_preference.setCurrentText(self._assistant_mode_label())
         self.step_checkbox.setChecked(dialog.step_checkbox.isChecked())
         self.context_checkbox.setChecked(dialog.context_checkbox.isChecked())
         self._save_settings()
         self._apply_language()
-        self.ai_status.setText(self._tr("settings_updated"))
+        self._set_ai_status(self._tr("settings_updated"), "success")
 
     def _clear_settings_dialog(self, dialog: AssistantSettingsDialog) -> None:
         if self.settings_dialog is dialog:
@@ -875,7 +909,7 @@ class MatrixCalculatorWindow(QMainWindow):
             return
         if not self._confirm_online_ai_transfer():
             self._append_ai_message("system", self._tr("online_ai_transfer_cancelled"))
-            self.ai_status.setText(self._tr("online_ai_transfer_cancelled_status"))
+            self._set_ai_status(self._tr("online_ai_transfer_cancelled_status"), "warning")
             return
         api_key = self.ai_api_key or os.getenv("OPENAI_API_KEY", "")
         if not api_key:
@@ -884,13 +918,13 @@ class MatrixCalculatorWindow(QMainWindow):
                 self._tr("online_api_missing_key_message")
             )
             self._append_ai_message("system", self._build_query_help(query))
-            self.ai_status.setText(self._tr("online_api_missing_key_status"))
+            self._set_ai_status(self._tr("online_api_missing_key_status"), "warning")
             return
 
         chosen_model = self._resolve_openai_model()
         self._save_settings()
 
-        self.ai_status.setText(self._tr("openai_responding").format(model=chosen_model))
+        self._set_ai_status(self._tr("openai_responding").format(model=chosen_model), "info")
         self.solve_button.setEnabled(False)
         self.ai_input.setEnabled(False)
 
@@ -903,14 +937,14 @@ class MatrixCalculatorWindow(QMainWindow):
         self.solve_button.setEnabled(True)
         self.ai_input.setEnabled(True)
         self._append_ai_message("assistant", output_text or self._tr("openai_empty_response"))
-        self.ai_status.setText(self._tr("openai_answer_received").format(model=model))
+        self._set_ai_status(self._tr("openai_answer_received").format(model=model), "success")
         self.ai_worker = None
 
     def _on_openai_failed(self, error: str) -> None:
         self.solve_button.setEnabled(True)
         self.ai_input.setEnabled(True)
         self._append_ai_message("system", self._tr("openai_request_failed_message").format(error=error))
-        self.ai_status.setText(self._tr("openai_request_failed_status"))
+        self._set_ai_status(self._tr("openai_request_failed_status"), "error")
         self.ai_worker = None
 
     def _confirm_online_ai_transfer(self) -> bool:
@@ -936,7 +970,6 @@ class MatrixCalculatorWindow(QMainWindow):
             self.mode_preference.setCurrentText(self._assistant_mode_label())
             self.step_checkbox.setChecked(self.ai_step_by_step)
             self.context_checkbox.setChecked(self.ai_use_context)
-            self.theme_select.setCurrentText(self._theme_display_name())
             return
         self.ai_model = self._normalize_openai_model(data.get("openai_model", self.ai_model))
         self.app_language = normalize_language(data.get("app_language", self.app_language))
@@ -948,9 +981,6 @@ class MatrixCalculatorWindow(QMainWindow):
         self.mode_preference.setCurrentText(self._assistant_mode_label())
         self.step_checkbox.setChecked(self.ai_step_by_step)
         self.context_checkbox.setChecked(self.ai_use_context)
-        self.theme_select.blockSignals(True)
-        self.theme_select.setCurrentText(self._theme_display_name())
-        self.theme_select.blockSignals(False)
         self._apply_styles()
 
     def _save_settings(self) -> None:
@@ -968,12 +998,12 @@ class MatrixCalculatorWindow(QMainWindow):
     def _toggle_step_mode(self, enabled: bool) -> None:
         self.ai_step_by_step = enabled
         self._save_settings()
-        self.ai_status.setText(self._tr("step_mode_on") if enabled else self._tr("step_mode_off"))
+        self._set_ai_status(self._tr("step_mode_on") if enabled else self._tr("step_mode_off"), "info")
 
     def _toggle_context_mode(self, enabled: bool) -> None:
         self.ai_use_context = enabled
         self._save_settings()
-        self.ai_status.setText(self._tr("context_mode_on") if enabled else self._tr("context_mode_off"))
+        self._set_ai_status(self._tr("context_mode_on") if enabled else self._tr("context_mode_off"), "info")
 
     def _append_ai_message(self, role: str, text: str) -> None:
         self.ai_messages.append((role, text))
@@ -987,7 +1017,7 @@ class MatrixCalculatorWindow(QMainWindow):
     def _clear_ai_chat(self) -> None:
         self.ai_messages.clear()
         self.ai_result.clear()
-        self.ai_status.setText(self._tr("ai_history_cleared"))
+        self._set_ai_status(self._tr("ai_history_cleared"), "neutral")
 
     def _render_ai_chat(self) -> None:
         if not hasattr(self, "ai_result") or not hasattr(self.ai_result, "setHtml"):

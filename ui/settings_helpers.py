@@ -37,6 +37,7 @@ def prepare_settings_dialog(
     *,
     current_mode_label: str,
     current_model_label: str,
+    current_theme_label: str,
     step_by_step: bool,
     use_context: bool,
     has_api_key: bool,
@@ -53,6 +54,7 @@ def prepare_settings_dialog(
 ) -> None:
     dialog.setModal(False)
     dialog.setWindowModality(Qt.NonModal)
+    dialog.theme_select.setCurrentText(current_theme_label)
     dialog.mode_select.setCurrentText(current_mode_label)
     dialog.model_value_label.setText(current_model_label)
     dialog.step_checkbox.setChecked(step_by_step)

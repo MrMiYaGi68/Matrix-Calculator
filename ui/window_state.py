@@ -144,11 +144,11 @@ def refresh_ai_toggle_button(window) -> None:
         return
     text_key = "hide_ai_panel" if window.ai_panel_visible else "show_ai_panel"
     tooltip_key = "hide_ai_panel_tooltip" if window.ai_panel_visible else "show_ai_panel_tooltip"
-    prefix = "◀" if window.ai_panel_visible else "▶"
+    prefix = "◂" if window.ai_panel_visible else "▸"
     available_width = window.left_panel.width() if hasattr(window, "left_panel") else 0
-    if available_width and available_width < 760:
-        button_text = prefix
-    elif available_width and available_width < 920:
+    if window.ai_panel_visible:
+        button_text = f"{prefix} {window._tr(text_key)}"
+    elif available_width and available_width < 700:
         button_text = f"{prefix} KI"
     else:
         button_text = f"{prefix} {window._tr(text_key)}"

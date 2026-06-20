@@ -18,6 +18,7 @@ Translator = Callable[[str], str]
 class AssistantDecision:
     messages: list[tuple[str, str]] = field(default_factory=list)
     status: str = ""
+    status_state: str = "neutral"
     expression_to_evaluate: str | None = None
     openai_query: str | None = None
     pending_clarification: dict[str, object] | None = None
@@ -55,6 +56,7 @@ class AssistantService:
             decision = AssistantDecision(
                 messages=[("assistant", self._build_local_answer(query, expression, answer, explanation))],
                 status=self.translate("clarification_answered"),
+                status_state="success",
                 pending_clarification=pending,
             )
             if expression and expression != CLARIFICATION_EXPRESSION:
@@ -71,8 +73,10 @@ class AssistantService:
             )
             if expression == CLARIFICATION_EXPRESSION:
                 decision.status = self.translate("clarification_needed")
+                decision.status_state = "warning"
             else:
                 decision.status = self.translate("local_solved")
+                decision.status_state = "success"
                 if expression:
                     decision.expression_to_evaluate = expression
             return decision
@@ -81,6 +85,8 @@ class AssistantService:
         if mode == "api_direct" and has_api_key:
             return AssistantDecision(
                 messages=[("system", self.translate("local_trying_api"))],
+                status=self.translate("local_trying_api"),
+                status_state="info",
                 openai_query=query,
                 pending_clarification=None,
             )
@@ -92,6 +98,7 @@ class AssistantService:
                     ("system", self.query_help_builder(query)),
                 ],
                 status=self.translate("api_direct_missing_key_status"),
+                status_state="warning",
                 pending_clarification=None,
             )
 
@@ -101,6 +108,7 @@ class AssistantService:
                 ("system", self.query_help_builder(query)),
             ],
             status=self.translate("local_not_solved_status"),
+            status_state="warning",
             pending_clarification=None,
         )
 

@@ -60,7 +60,10 @@ def solve_natural_query(window) -> None:
     for role, text in decision.messages:
         window._append_ai_message(role, text)
     if decision.status:
-        window.ai_status.setText(decision.status)
+        if hasattr(window, "_set_ai_status"):
+            window._set_ai_status(decision.status, decision.status_state)
+        else:
+            window.ai_status.setText(decision.status)
     if decision.expression_to_evaluate:
         window._set_expression_and_evaluate(decision.expression_to_evaluate)
     if decision.openai_query:

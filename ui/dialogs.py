@@ -70,6 +70,15 @@ class AssistantSettingsDialog(QDialog):
         self.language_select.setCurrentText(language_label(self.language))
         general_layout.addWidget(self.language_select)
 
+        theme_label = QLabel("Darstellung" if self.language == "de" else "Theme")
+        theme_label.setObjectName("settingsLabel")
+        general_layout.addWidget(theme_label)
+
+        self.theme_select = QComboBox()
+        self.theme_select.setObjectName("themeSelect")
+        self.theme_select.addItems(["Graphite", "Matrix", "High Contrast", "Light"])
+        general_layout.addWidget(self.theme_select)
+
         mode_label = QLabel(tr(self.language, "answer_mode"))
         mode_label.setObjectName("settingsLabel")
         general_layout.addWidget(mode_label)

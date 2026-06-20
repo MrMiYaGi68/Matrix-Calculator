@@ -4,6 +4,7 @@ from __future__ import annotations
 from PySide6.QtGui import QIcon
 from PySide6.QtCore import QSize, Qt
 from PySide6.QtWidgets import (
+    QButtonGroup,
     QCheckBox,
     QComboBox,
     QFrame,
@@ -45,7 +46,7 @@ def build_left_panel_content(window, left_layout, *, button_class) -> None:
 
     window.title_label = QLabel("Matrix <span style='color:#ff9f0a;'>KI</span> Taschenrechner")
     window.title_label.setObjectName("titleLabel")
-    window.subtitle_label = QLabel("Rechner links, KI-Assistent rechts.")
+    window.subtitle_label = QLabel("Bereit fuer schnelle Rechnungen.")
     window.subtitle_label.setObjectName("subtitleLabel")
     title_text_layout.addWidget(window.title_label)
     title_text_layout.addWidget(window.subtitle_label)
@@ -64,7 +65,7 @@ def build_left_panel_content(window, left_layout, *, button_class) -> None:
     chip_row.setSpacing(10)
     left_layout.addLayout(chip_row)
 
-    window.smart_chip = window._make_chip("Matrix", "accent")
+    window.smart_chip = window._make_chip("Lokal", "accent")
     window.mode_chip = window._make_chip("DEG", "good")
     window.memory_chip = window._make_chip("M 0", "warm")
     chip_row.addWidget(window.smart_chip)
@@ -77,21 +78,30 @@ def build_left_panel_content(window, left_layout, *, button_class) -> None:
     top_controls_row.setAlignment(Qt.AlignVCenter)
     left_layout.addLayout(top_controls_row)
 
-    window.layout_button = QPushButton("Scientific Layout")
-    window.layout_button.setObjectName("ghostButton")
-    window.layout_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
-    window.layout_button.clicked.connect(window._toggle_layout_mode)
-    top_controls_row.addWidget(window.layout_button)
+    window.layout_mode_group = QButtonGroup(window)
+    window.layout_mode_group.setExclusive(True)
 
-    window.theme_select = QComboBox()
-    window.theme_select.setObjectName("themeSelect")
-    window.theme_select.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-    window.theme_select.addItems(["Graphite", "Matrix", "High Contrast", "Light"])
-    window.theme_select.currentTextChanged.connect(window._change_theme)
-    top_controls_row.addWidget(window.theme_select, 1)
+    window.basic_mode_button = QPushButton("Basis")
+    window.basic_mode_button.setObjectName("modeSegmentButton")
+    window.basic_mode_button.setCheckable(True)
+    window.basic_mode_button.setCursor(Qt.PointingHandCursor)
+    window.basic_mode_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+    window.basic_mode_button.clicked.connect(lambda: window._set_layout_mode(False))
+    window.layout_mode_group.addButton(window.basic_mode_button)
+    top_controls_row.addWidget(window.basic_mode_button)
+
+    window.scientific_mode_button = QPushButton("Wissenschaft")
+    window.scientific_mode_button.setObjectName("modeSegmentButton")
+    window.scientific_mode_button.setCheckable(True)
+    window.scientific_mode_button.setCursor(Qt.PointingHandCursor)
+    window.scientific_mode_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+    window.scientific_mode_button.clicked.connect(lambda: window._set_layout_mode(True))
+    window.layout_mode_group.addButton(window.scientific_mode_button)
+    top_controls_row.addWidget(window.scientific_mode_button)
+    window.layout_button = window.scientific_mode_button
 
     window.history_button = QPushButton("Verlauf")
-    window.history_button.setObjectName("ghostButton")
+    window.history_button.setObjectName("utilityButton")
     window.history_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
     window.history_button.setIcon(window.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogDetailedView))
     window.history_button.setIconSize(QSize(16, 16))
@@ -101,7 +111,7 @@ def build_left_panel_content(window, left_layout, *, button_class) -> None:
     window.ai_toggle_button = QPushButton()
     window.ai_toggle_button.setObjectName("assistantToggleButton")
     window.ai_toggle_button.setCursor(Qt.PointingHandCursor)
-    window.ai_toggle_button.setMinimumWidth(44)
+    window.ai_toggle_button.setMinimumWidth(118)
     window.ai_toggle_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
     window.ai_toggle_button.clicked.connect(window._toggle_ai_panel)
     top_controls_row.addWidget(window.ai_toggle_button)
@@ -186,9 +196,12 @@ def build_assistant_panel_content(window, right_layout) -> None:
     window.ai_status.setWordWrap(True)
     ai_layout.addWidget(window.ai_status)
 
-    query_column = QVBoxLayout()
+    window.assistant_query_panel = QFrame()
+    window.assistant_query_panel.setObjectName("assistantQueryPanel")
+    query_column = QVBoxLayout(window.assistant_query_panel)
+    query_column.setContentsMargins(10, 10, 10, 10)
     query_column.setSpacing(10)
-    ai_layout.addLayout(query_column)
+    ai_layout.addWidget(window.assistant_query_panel)
 
     window.ai_input = QueryInput()
     window.ai_input.setObjectName("queryInput")
@@ -202,15 +215,13 @@ def build_assistant_panel_content(window, right_layout) -> None:
     window.solve_button = QPushButton("Berechnen")
     window.solve_button.setObjectName("solveButton")
     window.solve_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-    window.solve_button.setIcon(window.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay))
-    window.solve_button.setIconSize(QSize(14, 14))
     window.solve_button.clicked.connect(window._solve_natural_query)
     query_column.addWidget(window.solve_button)
 
     window.ai_live_preview = QLabel("Live-Erkennung erscheint hier.")
     window.ai_live_preview.setObjectName("queryPreview")
     window.ai_live_preview.setWordWrap(True)
-    ai_layout.addWidget(window.ai_live_preview)
+    query_column.addWidget(window.ai_live_preview)
 
     action_grid = QGridLayout()
     action_grid.setHorizontalSpacing(8)
@@ -266,7 +277,7 @@ def build_assistant_panel_content(window, right_layout) -> None:
     window.clear_ai_button.setIcon(window.style().standardIcon(QStyle.StandardPixmap.SP_TrashIcon))
     window.clear_ai_button.setIconSize(QSize(16, 16))
     window.clear_ai_button.clicked.connect(window._clear_ai_chat)
-    ai_layout.addWidget(window.clear_ai_button)
+    action_grid.addWidget(window.clear_ai_button, 1, 0, 1, 2)
 
 
 def build_auxiliary_dialogs(window) -> None:

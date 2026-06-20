@@ -109,15 +109,62 @@ class UiLayoutTest(unittest.TestCase):
     def test_toolbar_controls_have_enough_width_for_german_labels_at_default_width(self):
         window = self._make_window(1400, open_ai=True)
 
-        for widget in (window.layout_button, window.history_button, window.ai_toggle_button):
+        for widget in (window.basic_mode_button, window.scientific_mode_button, window.history_button, window.ai_toggle_button):
             self.assertGreaterEqual(widget.width(), widget.sizeHint().width())
 
     def test_toolbar_buttons_use_compact_non_expanding_horizontal_policies(self):
         window = self._make_window(1400, open_ai=True)
 
-        self.assertNotEqual(window.layout_button.sizePolicy().horizontalPolicy(), QSizePolicy.Expanding)
+        self.assertNotEqual(window.basic_mode_button.sizePolicy().horizontalPolicy(), QSizePolicy.Expanding)
+        self.assertNotEqual(window.scientific_mode_button.sizePolicy().horizontalPolicy(), QSizePolicy.Expanding)
         self.assertNotEqual(window.history_button.sizePolicy().horizontalPolicy(), QSizePolicy.Expanding)
         self.assertNotEqual(window.ai_toggle_button.sizePolicy().horizontalPolicy(), QSizePolicy.Expanding)
+
+    def test_layout_mode_uses_clear_segmented_controls(self):
+        window = self._make_window()
+
+        self.assertEqual(window.basic_mode_button.text(), window._tr("basic_layout"))
+        self.assertEqual(window.scientific_mode_button.text(), window._tr("scientific_layout"))
+        self.assertTrue(window.basic_mode_button.isChecked())
+        self.assertFalse(window.scientific_mode_button.isChecked())
+
+        window.scientific_mode_button.click()
+        self.app.processEvents()
+
+        self.assertFalse(window.basic_mode_button.isChecked())
+        self.assertTrue(window.scientific_mode_button.isChecked())
+        self.assertTrue(window.scientific_mode)
+
+    def test_assistant_panel_groups_query_controls_and_uses_plain_calculate_action(self):
+        window = self._make_window(1400, open_ai=True)
+
+        self.assertEqual(window.assistant_query_panel.objectName(), "assistantQueryPanel")
+        self.assertEqual(window.ai_live_preview.parentWidget(), window.assistant_query_panel)
+        self.assertEqual(window.solve_button.text(), window._tr("calculate"))
+        self.assertTrue(window.solve_button.icon().isNull())
+
+    def test_top_bar_distinguishes_secondary_history_from_ai_toggle(self):
+        window = self._make_window(1400, open_ai=True)
+
+        self.assertEqual(window.history_button.objectName(), "utilityButton")
+        self.assertEqual(window.ai_toggle_button.objectName(), "assistantToggleButton")
+        self.assertIn(window._tr("hide_ai_panel"), window.ai_toggle_button.text())
+
+    def test_preview_state_marks_errors_and_recovers_after_clear(self):
+        window = self._make_window()
+
+        window.expression = "1/0"
+        window._evaluate()
+        self.app.processEvents()
+
+        self.assertEqual(window.result_label.text(), "ERROR")
+        self.assertEqual(window.preview_label.property("state"), "error")
+
+        window._clear_all()
+        self.app.processEvents()
+
+        self.assertEqual(window.result_label.text(), "0")
+        self.assertEqual(window.preview_label.property("state"), "neutral")
 
     def test_header_settings_button_exists_for_collapsed_access(self):
         window = self._make_window()
@@ -154,6 +201,7 @@ class UiLayoutTest(unittest.TestCase):
         self.addCleanup(dialog.close)
 
         self.assertEqual(dialog.language_select.objectName(), "modeSelect")
+        self.assertEqual(dialog.theme_select.objectName(), "themeSelect")
         self.assertEqual(dialog.mode_select.objectName(), "modeSelect")
         self.assertEqual(dialog.step_checkbox.objectName(), "stepCheck")
         self.assertEqual(dialog.context_checkbox.objectName(), "stepCheck")

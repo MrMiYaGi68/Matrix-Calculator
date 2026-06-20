@@ -5,11 +5,25 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QListWidgetItem
 
 
+def _set_preview(window, text: str, state: str = "neutral") -> None:
+    if hasattr(window, "_set_preview_state"):
+        window._set_preview_state(text, state)
+    else:
+        window.preview_label.setText(text)
+
+
+def _set_ai_status(window, text: str, state: str = "neutral") -> None:
+    if hasattr(window, "_set_ai_status"):
+        window._set_ai_status(text, state)
+    else:
+        window.ai_status.setText(text)
+
+
 def on_history_clicked(window, item: QListWidgetItem) -> None:
     expr, result = item.data(Qt.UserRole)
     window.expression = expr
     window.result_label.setText(result)
-    window.preview_label.setText(window._tr("history_loaded"))
+    _set_preview(window, window._tr("history_loaded"), "success")
     window.just_evaluated = False
     window._update_display()
 
@@ -19,7 +33,7 @@ def clear_history(window) -> None:
     if window.history_dialog is not None:
         window.history_dialog.history_list.clear()
         window.history_dialog.info_label.setText(window._tr("no_history"))
-    window.preview_label.setText(window._tr("history_cleared"))
+    _set_preview(window, window._tr("history_cleared"), "neutral")
 
 
 def open_history_dialog(window) -> None:
@@ -60,7 +74,7 @@ def open_chatgpt_web_for_current_query(window) -> None:
         window._append_ai_message("system", window._tr("chatgpt_need_query"))
         return
     if window._open_chatgpt_in_app(query):
-        window.ai_status.setText(window._tr("chatgpt_opened"))
+        _set_ai_status(window, window._tr("chatgpt_opened"), "success")
     else:
         window._append_ai_message("system", window._tr("chatgpt_unavailable_message"))
-        window.ai_status.setText(window._tr("chatgpt_unavailable_status"))
+        _set_ai_status(window, window._tr("chatgpt_unavailable_status"), "warning")

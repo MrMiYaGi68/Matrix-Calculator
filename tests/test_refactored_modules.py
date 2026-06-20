@@ -109,6 +109,49 @@ class RefactoredModulesTest(unittest.TestCase):
         self.assertTrue(any(role == "assistant" and "Ergebnis: 4" in text for role, text in messages))
         self.assertIn("solved", statuses)
 
+    def test_solve_natural_query_uses_warning_state_for_unsolved_local_query(self):
+        messages = []
+        statuses = []
+
+        class DummyInput:
+            def __init__(self):
+                self.value = "nicht lösbar"
+
+            def text(self):
+                return self.value
+
+            def clear(self):
+                self.value = ""
+
+        class DummyMode:
+            def currentText(self):
+                return "Lokal, dann Browser"
+
+        window = type("Window", (), {})()
+        window.ai_input = DummyInput()
+        window.mode_preference = DummyMode()
+        window.ai_api_key = ""
+        window.ai_step_by_step = True
+        window.app_language = "de"
+        window.pending_clarification = None
+        window.last_ai_query = ""
+        window._append_ai_message = lambda role, text: messages.append((role, text))
+        window._update_ai_live_preview = lambda text: None
+        window._solve_local_natural_query = lambda query: None
+        window._build_query_help = lambda query: f"help:{query}"
+        window._normalize_assistant_mode = normalize_assistant_mode
+        window._set_ai_status = lambda text, state="neutral": statuses.append((text, state))
+        window._tr = lambda key: {
+            "mode_browser": "Lokal, dann Browser",
+            "local_not_solved_message": "nicht gelöst",
+            "local_not_solved_status": "prüfen",
+        }[key]
+
+        solve_natural_query(window)
+
+        self.assertEqual(statuses, [("prüfen", "warning")])
+        self.assertIn(("system", "nicht gelöst"), messages)
+
     def test_on_history_clicked_restores_expression(self):
         updated = []
 

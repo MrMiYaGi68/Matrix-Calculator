@@ -132,7 +132,6 @@ class SecurityReleaseTest(unittest.TestCase):
 
             self.assertEqual(window.ai_model, "gpt-5-mini")
             self.assertEqual(window.theme_name, "graphite")
-            self.assertEqual(window.theme_select.currentText(), "Graphite")
 
     def test_privacy_defaults_disable_chat_context_until_enabled(self):
         with tempfile.TemporaryDirectory() as tmp:
