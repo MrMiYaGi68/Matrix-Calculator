@@ -5,6 +5,7 @@ import tempfile
 import tomllib
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
@@ -83,6 +84,23 @@ class SecurityReleaseTest(unittest.TestCase):
         changelog = (PROJECT_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
         self.assertIn("## 1.0.2 - 2026-06-20", changelog)
         self.assertNotIn("Unreleased", changelog)
+
+    def test_project_version_prefers_source_pyproject(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            pyproject_path = Path(tmp) / "pyproject.toml"
+            pyproject_path.write_text("[project]\nversion = \"1.0.2\"\n", encoding="utf-8")
+            window = MatrixCalculatorWindow.__new__(MatrixCalculatorWindow)
+            window.PYPROJECT_PATH = pyproject_path
+
+            with patch("calculator.package_version", return_value="1.0.1"):
+                self.assertEqual(window._project_version(), "1.0.2")
+
+    def test_project_version_uses_package_metadata_when_pyproject_is_absent(self):
+        window = MatrixCalculatorWindow.__new__(MatrixCalculatorWindow)
+        window.PYPROJECT_PATH = Path("/tmp/matrix-calculator-missing-pyproject.toml")
+
+        with patch("calculator.package_version", return_value="1.0.2"):
+            self.assertEqual(window._project_version(), "1.0.2")
 
     def test_load_settings_removes_legacy_openai_api_key(self):
         with tempfile.TemporaryDirectory() as tmp:

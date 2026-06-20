@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import sys
 import tomllib
+from importlib.metadata import PackageNotFoundError, version as package_version
 from pathlib import Path
 try:
     from PySide6.QtCore import QEvent, QSize, QThread, QTimer, Qt, QUrl, Signal
@@ -1062,10 +1063,15 @@ class MatrixCalculatorWindow(QMainWindow):
         try:
             data = tomllib.loads(self.PYPROJECT_PATH.read_text(encoding="utf-8"))
         except (FileNotFoundError, OSError, tomllib.TOMLDecodeError):
-            return "Unbekannt"
+            data = {}
         project = data.get("project", {})
         version = project.get("version", "")
-        return version if isinstance(version, str) and version.strip() else "Unbekannt"
+        if isinstance(version, str) and version.strip():
+            return version
+        try:
+            return package_version("matrix-calculator")
+        except PackageNotFoundError:
+            return "Unbekannt"
 
     def _latest_packaged_version(self) -> str:
         try:
