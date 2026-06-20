@@ -36,6 +36,9 @@ jobs:
       - name: Run tests
         run: python -m unittest discover -s tests -p "test_*.py"
 
+      - name: Run UI smoke test
+        run: python tools/ui_smoke.py
+
       - name: Validate desktop files
         run: |
           desktop-file-validate MatrixCalculator.desktop

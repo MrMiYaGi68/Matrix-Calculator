@@ -24,7 +24,7 @@ def format_rich_text_block(
         safe,
     )
     return (
-        f"<html><body style=\"font-family:'DejaVu Sans'; font-size:14px; line-height:1.5; color:{text_color}; background:{body_bg};\">"
+        f"<html><body style=\"font-family:'DejaVu Sans', 'Noto Sans', sans-serif; font-size:14px; line-height:1.5; color:{text_color}; background:{body_bg};\">"
         + safe.replace("\n", "<br>")
         + "</body></html>"
     )
@@ -155,7 +155,7 @@ def render_ai_chat_html(
     return (
         f"""
         <html>
-          <body style="background:{body_background}; font-family:'DejaVu Sans'; margin:0; padding:10px;">
+          <body style="background:{body_background}; font-family:'DejaVu Sans', 'Noto Sans', sans-serif; margin:0; padding:10px;">
         """
         + "".join(blocks)
         + """
