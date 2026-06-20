@@ -1,0 +1,115 @@
+from __future__ import annotations
+
+
+ENGLISH_MARKERS = [
+    "what",
+    "how much",
+    "how many",
+    "how far",
+    "how long",
+    "how fast",
+    "given",
+    "find",
+    "with ",
+    " and ",
+    " the ",
+    " do ",
+    "cost",
+    "price",
+    "discount",
+    "interest",
+    "average",
+    "square root",
+    "density",
+    "speed",
+    "force",
+    "power",
+]
+
+ENGLISH_TRANSLATIONS = [
+    ("Aufgabe erkannt", "Task recognized"),
+    ("Ergebnis", "Result"),
+    ("Rechnung", "Calculation"),
+    ("Lösung", "Solution"),
+    ("Vorgehen", "Method"),
+    ("Erklärung", "Explanation"),
+    ("Erst wird der Rabattbetrag berechnet, danach vom Grundpreis abgezogen.", "First compute the discount amount, then subtract it from the original price."),
+    ("Erst werden die Zinsen berechnet, dann zum Startkapital addiert.", "First compute the interest, then add it to the starting capital."),
+    ("Beim Dreisatz wird erst der Preis pro Einheit berechnet und dann mit der Zielmenge multipliziert.", "With the rule of three, first compute the price per unit and then multiply by the target quantity."),
+    ("Das Quadrat von ", "The square of "),
+    ("Die dritte Potenz von ", "The third power of "),
+    ("Der Durchschnitt ist die Summe aller Werte geteilt durch ", "The average is the sum of all values divided by "),
+    ("Der Median ist der mittlere Wert der sortierten Liste.", "The median is the middle value of the sorted list."),
+    ("Die Varianz ist der Durchschnitt der quadrierten Abweichungen vom Mittelwert.", "Variance is the average of the squared deviations from the mean."),
+    ("Die Standardabweichung ist die square root of der Varianz.", "The standard deviation is the square root of the variance."),
+    ("Die Standardabweichung ist die Quadratwurzel der Varianz.", "The standard deviation is the square root of the variance."),
+    ("Beim Zinseszins wird der Zinssatz in jedem Jahr auf den neuen Gesamtbetrag angewendet.", "With compound interest, the interest rate is applied to the new total each year."),
+    ("Endbetrag bei einfacher Verzinsung ist Kapital plus Zinsen.", "The final amount with simple interest is capital plus interest."),
+    ("Einfache Zinsen sind Kapital × Zinssatz × Zeit.", "Simple interest is capital × interest rate × time."),
+    ("Die prozentuale Änderung ist (neu - alt) / alt × 100.", "The percentage change is (new - old) / old × 100."),
+    ("Brutto ist Netto plus ", "Gross is net plus "),
+    ("% Mehrwertsteuer.", "% VAT."),
+    ("Die Mehrwertsteuer ist Netto × ", "VAT is net × "),
+    ("Der Gewinn ist Verkaufspreis minus Kosten.", "Profit is selling price minus cost."),
+    ("Die Marge ist Gewinn geteilt durch Verkaufspreis mal 100.", "Margin is profit divided by selling price times 100."),
+    ("Die Ersparnis ist Grundpreis mal Rabattsatz.", "The savings are original price times the discount rate."),
+    ("Der Endpreis ist Grundpreis minus Rabattbetrag.", "The final price is the original price minus the discount amount."),
+    ("Der Rabattbetrag ist Grundpreis × Rabattsatz.", "The discount amount is original price × discount rate."),
+    ("Nach Pythagoras gilt c = √(a² + b²).", "By Pythagoras, c = √(a² + b²)."),
+    ("Für die fehlende Kathete gilt a = √(c² - b²).", "For the missing leg, a = √(c² - b²)."),
+    ("Die quadratische Gleichung wurde mit der Mitternachtsformel gelöst.", "The quadratic equation was solved with the quadratic formula."),
+    ("Die lineare Gleichung wird nach x umgestellt: x = (c - b) / a.", "Rearrange the linear equation for x: x = (c - b) / a."),
+    ("Das lineare Gleichungssystem wurde mit dem Determinantenverfahren gelöst.", "The system of linear equations was solved with the determinant method."),
+    ("Die Gleichung ist bereits nach x aufgelöst.", "The equation is already solved for x."),
+    ("Die Bruchrechnung wurde als Rechenoperation zwischen zwei Brüchen ausgewertet.", "The fraction problem was evaluated as an operation between two fractions."),
+    ("Die Einheit wurde über einen gemeinsamen Basisfaktor von ", "The unit was converted using a shared base factor from "),
+    (" nach ", " to "),
+    (" umgerechnet.", "."),
+    ("Geschwindigkeit ist Strecke geteilt durch Zeit.", "Speed is distance divided by time."),
+    ("Die Strecke ist Geschwindigkeit mal Zeit.", "Distance is speed times time."),
+    ("Die Zeit ist Strecke geteilt durch Geschwindigkeit.", "Time is distance divided by speed."),
+    ("Arbeit ist Kraft mal Weg.", "Work is force times distance."),
+    ("Leistung ist Arbeit geteilt durch Zeit.", "Power is work divided by time."),
+    ("Beschleunigung ist Geschwindigkeitsänderung geteilt durch Zeit.", "Acceleration is change in velocity divided by time."),
+    ("Dichte ist Masse geteilt durch Volumen.", "Density is mass divided by volume."),
+    ("Kraft ist Masse mal Beschleunigung.", "Force is mass times acceleration."),
+    ("Die Rechteckfläche ist Länge × Breite.", "The rectangle area is length × width."),
+    ("Der Rechteckumfang ist 2 × (Länge + Breite).", "The rectangle perimeter is 2 × (length + width)."),
+    ("Die Rechteckdiagonale ergibt sich mit Pythagoras.", "The rectangle diagonal is found using Pythagoras."),
+    ("Die Dreiecksfläche ist Grundseite × Höhe ÷ 2.", "The triangle area is base × height ÷ 2."),
+    ("In einem rechtwinkligen Dreieck ergibt sich die Gegenkathete aus Hypotenuse × sin(Winkel).", "In a right triangle, the opposite side is hypotenuse × sin(angle)."),
+    ("In einem rechtwinkligen Dreieck ergibt sich die Ankathete aus Hypotenuse × cos(Winkel).", "In a right triangle, the adjacent side is hypotenuse × cos(angle)."),
+    ("Der Sinussatz nutzt das Verhältnis von Seite zu Sinus des gegenüberliegenden Winkels.", "The sine rule uses the ratio between a side and the sine of its opposite angle."),
+    ("Der Kosinussatz berechnet die dritte Seite aus zwei Seiten und dem eingeschlossenen Winkel.", "The cosine rule computes the third side from two sides and the included angle."),
+    ("Die Kreisfläche ist π × r² = π × ", "The circle area is π × r² = π × "),
+    ("Der Umfang ist 2 × π × r = 2 × π × ", "The circumference is 2 × π × r = 2 × π × "),
+    ("Der Durchmesser ist 2 × r = 2 × ", "The diameter is 2 × r = 2 × "),
+    ("Der Radius ist der halbe Durchmesser: ", "The radius is half the diameter: "),
+    ("Aus A = πr² folgt r = √(A/π).", "From A = πr², it follows that r = √(A/π)."),
+    ("Aus U = 2πr folgt r = U / (2π).", "From U = 2πr, it follows that r = U / (2π)."),
+    ("Das Kugelvolumen ist 4/3 × π × r³.", "The sphere volume is 4/3 × π × r³."),
+    ("Das Zylindervolumen ist π × r² × h.", "The cylinder volume is π × r² × h."),
+    ("Das Kegelvolumen ist Grundfläche × Höhe ÷ 3.", "The cone volume is base area × height ÷ 3."),
+    ("Das Quadervolumen ist Länge × Breite × Höhe.", "The cuboid volume is length × width × height."),
+    ("Die Kugeloberfläche ist 4 × π × r².", "The sphere surface area is 4 × π × r²."),
+    ("Die Zylinderoberfläche ist 2πr(r + h).", "The cylinder surface area is 2πr(r + h)."),
+    ("Die Wurzel von ", "The square root of "),
+    (" ist ", " is "),
+    ("% von ", "% of "),
+    (" bedeutet ", " means "),
+    ("Der prozentuale Anteil ist Teil geteilt durch Ganzes mal 100.", "The percentage share is part divided by whole times 100."),
+]
+
+
+def is_english_query(query: str) -> bool:
+    lowered = query.lower()
+    return any(marker in lowered for marker in ENGLISH_MARKERS)
+
+
+def translate_local_text(text: str, english: bool) -> str:
+    if not english:
+        return text
+    result = text
+    for source, target in ENGLISH_TRANSLATIONS:
+        result = result.replace(source, target)
+    return result

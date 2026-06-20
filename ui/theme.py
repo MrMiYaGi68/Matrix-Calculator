@@ -1,0 +1,531 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
+
+from string import Template
+
+from ui.button_config import DEFAULT_THEME
+
+
+_PALETTES: dict[str, dict[str, str]] = {
+    "graphite": {
+        "window": "#101317", "panel": "#191d23", "side": "#15191f", "assistant": "#1c2128",
+        "display": "#0f141a", "display_border": "#334052", "output": "#171d25", "raised": "#242a33",
+        "status_bg": "#20262e", "input": "#1d2631", "input_focus": "#233044",
+        "border": "#2a313b", "strong_border": "#343c48", "button_border": "#3a4451",
+        "text": "#f4f6f8", "soft_text": "#dbe1e8", "muted": "#9ca7b5",
+        "button": "#252b34", "button_hover": "#303845", "number": "#2d333d", "number_hover": "#39424e",
+        "number_border": "#3b4450", "function": "#404957", "function_hover": "#4a5464",
+        "function_border": "#505a68", "memory": "#374457", "memory_border": "#46566d",
+        "mode": "#303946", "mode_border": "#414c5a", "danger_soft": "#484f5b",
+        "danger_soft_border": "#58616f", "clear": "#bd4040", "clear_border": "#dd6262",
+        "clear_hover": "#cf5151", "accent": "#ff9f0a", "accent_hover": "#ffae2e",
+        "accent_border": "#ffc05d", "accent_text": "#101317", "blue": "#7da2ff",
+        "blue_bg": "#1b2836", "blue_border": "#2f557d", "blue_text": "#dceaff",
+        "scrollbar": "#4b5563", "scrollbar_hover": "#647184",
+        "chip_accent": "#27313d", "chip_good": "#22392e", "chip_warm": "#ff9f0a",
+    },
+    "matrix": {
+        "window": "#0d1513", "panel": "#14201d", "side": "#101a18", "assistant": "#172420",
+        "display": "#0a1211", "display_border": "#2d5548", "output": "#101a18", "raised": "#1c2d28",
+        "status_bg": "#192821", "input": "#162721", "input_focus": "#1b342b",
+        "border": "#243b34", "strong_border": "#2d5145", "button_border": "#355d50",
+        "text": "#eff8f5", "soft_text": "#d7eee6", "muted": "#9bb7ad",
+        "button": "#1e312b", "button_hover": "#294239", "number": "#263c35", "number_hover": "#304d43",
+        "number_border": "#35584c", "function": "#344b43", "function_hover": "#405b51",
+        "function_border": "#4e6f63", "memory": "#30485b", "memory_border": "#3f5d75",
+        "mode": "#283c35", "mode_border": "#3d5d51", "danger_soft": "#4b514b",
+        "danger_soft_border": "#60695f", "clear": "#be4444", "clear_border": "#de6969",
+        "clear_hover": "#cf5656", "accent": "#ff9f0a", "accent_hover": "#ffb02f",
+        "accent_border": "#ffc060", "accent_text": "#0d1513", "blue": "#7fc7ff",
+        "blue_bg": "#15293a", "blue_border": "#2e617e", "blue_text": "#dff4ff",
+        "scrollbar": "#45635a", "scrollbar_hover": "#5d8175",
+        "chip_accent": "#203932", "chip_good": "#1d4335", "chip_warm": "#ff9f0a",
+    },
+    "high contrast": {
+        "window": "#000000", "panel": "#101010", "side": "#070707", "assistant": "#141414",
+        "display": "#000000", "display_border": "#747474", "output": "#050505", "raised": "#1f1f1f",
+        "status_bg": "#181818", "input": "#0a0a0a", "input_focus": "#121a25",
+        "border": "#424242", "strong_border": "#6a6a6a", "button_border": "#727272",
+        "text": "#ffffff", "soft_text": "#f2f2f2", "muted": "#d0d0d0",
+        "button": "#222222", "button_hover": "#333333", "number": "#202020", "number_hover": "#353535",
+        "number_border": "#737373", "function": "#333333", "function_hover": "#444444",
+        "function_border": "#868686", "memory": "#2b3b4f", "memory_border": "#7195c4",
+        "mode": "#242424", "mode_border": "#777777", "danger_soft": "#3d3d3d",
+        "danger_soft_border": "#858585", "clear": "#d43b3b", "clear_border": "#ff8f8f",
+        "clear_hover": "#e74f4f", "accent": "#ffb000", "accent_hover": "#ffc13d",
+        "accent_border": "#ffe08a", "accent_text": "#000000", "blue": "#8ec5ff",
+        "blue_bg": "#061d35", "blue_border": "#69aee9", "blue_text": "#ffffff",
+        "scrollbar": "#777777", "scrollbar_hover": "#9b9b9b",
+        "chip_accent": "#202020", "chip_good": "#143b28", "chip_warm": "#ffb000",
+    },
+    "light": {
+        "window": "#eef1f4", "panel": "#fbfcfd", "side": "#f6f8fa", "assistant": "#ffffff",
+        "display": "#f5f7fa", "display_border": "#c9d2de", "output": "#f8fafc", "raised": "#eef2f6",
+        "status_bg": "#edf2f7", "input": "#ffffff", "input_focus": "#f2f7ff",
+        "border": "#d8dee8", "strong_border": "#c6cfdb", "button_border": "#c8d1de",
+        "text": "#151a21", "soft_text": "#2f3b48", "muted": "#647083",
+        "button": "#eef2f6", "button_hover": "#e3e9f0", "number": "#ffffff", "number_hover": "#edf3f8",
+        "number_border": "#d0d8e3", "function": "#e4eaf1", "function_hover": "#d9e1ea",
+        "function_border": "#c5cfda", "memory": "#dfe9f5", "memory_border": "#bfd0e5",
+        "mode": "#e8edf3", "mode_border": "#c7d0dc", "danger_soft": "#eef0f3",
+        "danger_soft_border": "#c9d0d8", "clear": "#c83e3e", "clear_border": "#e17878",
+        "clear_hover": "#d85353", "accent": "#e88b00", "accent_hover": "#f59b16",
+        "accent_border": "#f1b657", "accent_text": "#ffffff", "blue": "#356fd6",
+        "blue_bg": "#eaf2ff", "blue_border": "#bad0f5", "blue_text": "#1e477f",
+        "scrollbar": "#aeb8c5", "scrollbar_hover": "#909dad",
+        "chip_accent": "#e9eef5", "chip_good": "#e6f3ec", "chip_warm": "#e88b00",
+    },
+}
+
+
+def theme_palette(theme_name: str) -> dict[str, str]:
+    return _PALETTES.get(theme_name, _PALETTES[DEFAULT_THEME])
+
+
+def build_stylesheet(theme_name: str) -> str:
+    colors = theme_palette(theme_name)
+    return Template(
+        """
+        QMainWindow {
+            background: $window;
+        }
+        QFrame#mainPanel, QFrame#sidePanel {
+            background: $panel;
+            border: 1px solid $border;
+            border-radius: 14px;
+        }
+        QFrame#sidePanel {
+            background: $side;
+            border: 1px solid $strong_border;
+        }
+        QSplitter::handle {
+            background: transparent;
+            border-radius: 4px;
+        }
+        QLabel#titleLabel {
+            color: $text;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        QLabel#subtitleLabel {
+            color: $muted;
+            font-size: 14px;
+            padding-bottom: 2px;
+        }
+        QPushButton#iconButton {
+            background: $button;
+            color: $text;
+            border: 1px solid $button_border;
+            border-radius: 10px;
+            padding: 0px;
+            font-size: 18px;
+            font-weight: 700;
+            min-width: 38px;
+            max-width: 38px;
+            min-height: 38px;
+            max-height: 38px;
+        }
+        QPushButton#iconButton:hover {
+            background: $button_hover;
+        }
+        QLabel#panelTitle {
+            color: $text;
+            font-size: 22px;
+            font-weight: 700;
+        }
+        QLabel#panelHint {
+            color: $muted;
+            font-size: 14px;
+        }
+        QLabel#helperLabel {
+            color: $soft_text;
+            background: $raised;
+            border: 1px solid $border;
+            border-radius: 10px;
+            padding: 9px 11px;
+            font-size: 14px;
+        }
+        QComboBox#modeSelect, QComboBox#themeSelect {
+            background: $button;
+            color: $text;
+            border: 1px solid $button_border;
+            border-radius: 9px;
+            padding: 7px 10px;
+            font-size: 14px;
+            min-width: 180px;
+            min-height: 38px;
+        }
+        QComboBox#themeSelect {
+            min-width: 128px;
+            max-width: 190px;
+        }
+        QComboBox#modeSelect::drop-down, QComboBox#themeSelect::drop-down {
+            width: 24px;
+            border: none;
+        }
+        QComboBox#modeSelect QAbstractItemView, QComboBox#themeSelect QAbstractItemView {
+            background: $panel;
+            color: $text;
+            border: 1px solid $button_border;
+            selection-background-color: $accent;
+            selection-color: $accent_text;
+            padding: 4px;
+            outline: 0;
+        }
+        QCheckBox#stepCheck {
+            color: $text;
+            font-size: 15px;
+            spacing: 8px;
+            min-height: 32px;
+            padding-top: 6px;
+            padding-bottom: 6px;
+        }
+        QCheckBox#stepCheck::indicator {
+            width: 20px;
+            height: 20px;
+        }
+        QLabel#statusBarLabel {
+            color: $soft_text;
+            background: $status_bg;
+            border: 1px solid $border;
+            border-radius: 9px;
+            padding: 7px 10px;
+            font-size: 13px;
+        }
+        QLabel#previewLabel {
+            color: $muted;
+            font-size: 13px;
+        }
+        QLabel#expressionLabel {
+            color: $muted;
+            font-family: "DejaVu Sans Mono", "Noto Sans Mono", monospace;
+            font-size: 18px;
+            min-height: 32px;
+        }
+        QLabel#resultLabel {
+            color: $text;
+            font-family: "DejaVu Sans Mono", "Noto Sans Mono", monospace;
+            font-size: 46px;
+            font-weight: 700;
+            min-height: 58px;
+        }
+        QLabel#sideTitle {
+            color: $text;
+            font-size: 22px;
+            font-weight: 700;
+        }
+        QLabel#sideSubtitle, QLabel#historyInfo {
+            color: $muted;
+            font-size: 15px;
+        }
+        QFrame#controlsPanel {
+            background: transparent;
+            border: none;
+        }
+        QFrame#displayPanel {
+            background: $display;
+            border: 1px solid $display_border;
+            border-radius: 12px;
+        }
+        QFrame#assistantPanel, QFrame#historyPanel {
+            background: $assistant;
+            border: 1px solid $strong_border;
+            border-radius: 12px;
+        }
+        QDialog {
+            background: $panel;
+            color: $text;
+        }
+        QLabel#settingsTitle {
+            color: $text;
+            font-size: 22px;
+            font-weight: 700;
+        }
+        QTabWidget#settingsTabs::pane {
+            background: $raised;
+            border: 1px solid $border;
+            border-top-left-radius: 0px;
+            border-top-right-radius: 12px;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            top: -1px;
+        }
+        QTabWidget#settingsTabs::tab-bar {
+            alignment: left;
+            left: 0px;
+        }
+        QTabBar::tab {
+            background: $button;
+            color: $muted;
+            border: 1px solid $button_border;
+            border-bottom: none;
+            padding: 8px 14px;
+            min-width: 110px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            margin-right: 2px;
+            margin-bottom: 0px;
+        }
+        QTabBar::tab:selected {
+            background: $raised;
+            color: $text;
+            font-weight: 700;
+            border-color: $border;
+            margin-bottom: -1px;
+        }
+        QTabBar::tab:!selected {
+            margin-top: 2px;
+        }
+        QLabel#settingsLabel {
+            color: $muted;
+            font-size: 14px;
+        }
+        QLabel#apiStatusLabel {
+            color: $soft_text;
+            background: $raised;
+            border: 1px solid $button_border;
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 14px;
+            min-height: 22px;
+        }
+        QTextBrowser#apiStatusBrowser {
+            background: $raised;
+            color: $soft_text;
+            border: 1px solid $button_border;
+            border-radius: 10px;
+            padding: 6px 8px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        QTextBrowser#aboutBrowser {
+            background: $output;
+            color: $text;
+            border: 1px solid $button_border;
+            border-radius: 10px;
+            padding: 8px 10px;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+        QLabel[chip="true"] {
+            border-radius: 9px;
+            padding: 7px 11px;
+            font-size: 12px;
+            font-weight: 600;
+            min-height: 28px;
+        }
+        QPushButton#ghostButton, QPushButton#toolButton {
+            background: $button;
+            color: $text;
+            border: 1px solid $button_border;
+            border-radius: 9px;
+            padding: 7px 12px;
+            font-size: 14px;
+            font-weight: 600;
+            min-height: 38px;
+        }
+        QPushButton#toolButton {
+            min-width: 150px;
+        }
+        QPushButton#ghostButton:hover, QPushButton#toolButton:hover {
+            background: $button_hover;
+        }
+        QPushButton#assistantToggleButton {
+            background: $accent;
+            color: $accent_text;
+            border: 2px solid $accent_border;
+            border-radius: 10px;
+            padding: 7px 12px;
+            font-size: 14px;
+            font-weight: 700;
+            min-height: 38px;
+            min-width: 52px;
+        }
+        QPushButton#assistantToggleButton:hover {
+            background: $accent_hover;
+        }
+        QPushButton#assistantToggleButton[assistantVisible="false"] {
+            background: $blue_bg;
+            color: $blue_text;
+            border: 2px solid $blue_border;
+        }
+        QPushButton#primaryButton, QPushButton#solveButton {
+            background: $accent;
+            color: $accent_text;
+            border: 1px solid $accent_border;
+            border-radius: 12px;
+            padding: 10px 16px;
+            font-size: 16px;
+            font-weight: 700;
+            min-height: 46px;
+            min-width: 120px;
+        }
+        QPushButton#solveButton {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 0.01em;
+        }
+        QPushButton#primaryButton:hover, QPushButton#solveButton:hover {
+            background: $accent_hover;
+        }
+        QTextEdit#queryInput, QPlainTextEdit#queryInput {
+            background: $input;
+            color: $text;
+            border: 1px solid $button_border;
+            border-radius: 14px;
+            padding: 14px 16px;
+            font-size: 21px;
+            font-weight: 500;
+            min-height: 138px;
+        }
+        QTextEdit#queryInput:focus, QPlainTextEdit#queryInput:focus {
+            border: 1px solid $blue;
+            background: $input_focus;
+        }
+        QLabel#queryPreview {
+            color: $soft_text;
+            background: $raised;
+            border: 1px solid $border;
+            border-radius: 9px;
+            padding: 7px 10px;
+            font-size: 13px;
+            line-height: 1.35;
+        }
+        QTextEdit#assistantOutput, QTextBrowser#assistantOutput {
+            background: $output;
+            color: $text;
+            border: 1px solid $button_border;
+            border-radius: 10px;
+            padding: 6px;
+            font-size: 15px;
+        }
+        QListWidget#historyList {
+            background: $output;
+            border: 1px solid $button_border;
+            border-radius: 10px;
+            padding: 8px;
+            color: $text;
+            font-size: 16px;
+            outline: none;
+        }
+        QScrollArea {
+            background: transparent;
+            border: none;
+        }
+        QScrollBar:vertical {
+            background: transparent;
+            width: 12px;
+            margin: 8px 4px 8px 0;
+        }
+        QScrollBar::handle:vertical {
+            background: $scrollbar;
+            border-radius: 6px;
+            min-height: 48px;
+        }
+        QScrollBar::handle:vertical:hover {
+            background: $scrollbar_hover;
+        }
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+            height: 0px;
+        }
+        QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+            background: transparent;
+        }
+        QListWidget#historyList::item {
+            border-radius: 8px;
+            padding: 10px;
+            margin: 3px 0;
+            background: $raised;
+        }
+        QListWidget#historyList::item:selected {
+            background: $accent;
+            color: $accent_text;
+        }
+        CalcButton {
+            border: none;
+        }
+        QPushButton[role="number"] {
+            background: $number;
+            color: $text;
+            border: 1px solid $number_border;
+            border-radius: 11px;
+            font-size: 24px;
+            font-weight: 750;
+        }
+        QPushButton[role="number"]:hover {
+            background: $number_hover;
+        }
+        QPushButton[role="operator"] {
+            background: $accent;
+            color: $accent_text;
+            border: 1px solid $accent_border;
+            border-radius: 11px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+        QPushButton[role="operator"]:hover {
+            background: $accent_hover;
+        }
+        QPushButton[role="function"] {
+            background: $function;
+            color: $text;
+            border: 1px solid $function_border;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        QPushButton[role="function"]:hover {
+            background: $function_hover;
+        }
+        QPushButton[role="memory"] {
+            background: $memory;
+            color: $text;
+            border: 1px solid $memory_border;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        QPushButton[role="danger"] {
+            background: $danger_soft;
+            color: $text;
+            border: 1px solid $danger_soft_border;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+        }
+        QPushButton[role="clear"] {
+            background: $clear;
+            color: #ffffff;
+            border: 1px solid $clear_border;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+        }
+        QPushButton[role="clear"]:hover {
+            background: $clear_hover;
+        }
+        QPushButton[role="mode"] {
+            background: $mode;
+            color: $text;
+            border: 1px solid $mode_border;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+        }
+        QPushButton[role="equal"] {
+            background: $accent;
+            color: $accent_text;
+            border: 1px solid $accent_border;
+            border-radius: 11px;
+            font-size: 22px;
+            font-weight: 700;
+        }
+        QPushButton[role="equal"]:hover {
+            background: $accent_hover;
+        }
+        QPushButton[basicSymbol="true"] {
+            font-size: 24px;
+            font-weight: 750;
+        }
+        """
+    ).substitute(colors)

@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - "ci/**"
+  pull_request:
+
+jobs:
+  test:
+    name: Python tests
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPYCACHEPREFIX: /tmp/matrix-calculator-pycache
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install system validators
+        run: sudo apt-get update && sudo apt-get install -y desktop-file-utils
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Run tests
+        run: python -m unittest discover -s tests -p "test_*.py"
+
+      - name: Validate desktop files
+        run: |
+          desktop-file-validate MatrixCalculator.desktop
+          desktop-file-validate io.github.MrMiYaGi68.MatrixCalculator.desktop
+
+      - name: Build package
+        run: |
+          python -m pip install build
+          python -m build
+
+      - name: Check for generated pycache in repository
+        run: test -z "$(find . -name __pycache__ -print -quit)"
