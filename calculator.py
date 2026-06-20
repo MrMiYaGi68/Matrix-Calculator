@@ -1115,7 +1115,7 @@ class MatrixCalculatorWindow(QMainWindow):
         notes_html = self._release_notes_html()
         return (
             "<html><body style=\""
-            f"font-family:'DejaVu Sans'; font-size:14px; line-height:1.5; color:{colors['text']};"
+            f"font-family:'DejaVu Sans', 'Noto Sans', sans-serif; font-size:14px; line-height:1.5; color:{colors['text']};"
             f" background:{colors['output']}; margin:0;\">"
             f"<h2 style='margin:0 0 10px; color:{colors['text']};'>Matrix KI Taschenrechner</h2>"
             f"<p style='margin:0 0 14px; color:{colors['soft_text']};'><b>Kontakt zum Entwickler:</b><br>"
