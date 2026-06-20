@@ -13,13 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PYTHONPYCACHEPREFIX: /tmp/matrix-calculator-pycache
+      QT_QPA_PLATFORM: offscreen
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
       - name: Install system validators
-        run: sudo apt-get update && sudo apt-get install -y desktop-file-utils
+        run: sudo apt-get update && sudo apt-get install -y desktop-file-utils libegl1 libgl1 libxkbcommon-x11-0
 
       - name: Set up Python
         uses: actions/setup-python@v5
