@@ -37,7 +37,7 @@ class ExpressionParser:
         value = self._expression()
         if self._peek().kind != "EOF":
             raise CalculatorError("Ungültige Eingabe")
-        return value
+        return self._ensure_finite(value)
 
     def _tokenize(self, text: str) -> list[Token]:
         tokens: list[Token] = []
@@ -56,7 +56,7 @@ class ExpressionParser:
                     i += 1
                 if dot_count > 1:
                     raise CalculatorError("Zu viele Dezimalpunkte")
-                if i < len(text) and text[i] in "eE":
+                if self._starts_exponent(text, i):
                     i += 1
                     if i < len(text) and text[i] in "+-":
                         i += 1
@@ -85,6 +85,15 @@ class ExpressionParser:
             raise CalculatorError(f"Unbekanntes Zeichen: {char}")
         tokens.append(Token("EOF", ""))
         return tokens
+
+    @staticmethod
+    def _starts_exponent(text: str, index: int) -> bool:
+        if index >= len(text) or text[index] not in "eE":
+            return False
+        next_index = index + 1
+        if next_index < len(text) and text[next_index] in "+-":
+            next_index += 1
+        return next_index < len(text) and text[next_index].isdigit()
 
     def _peek(self) -> Token:
         return self.tokens[self.index]
@@ -208,6 +217,8 @@ class ExpressionParser:
         if lowered == "cos":
             return self._clean_complex(cmath.cos(angle))
         if lowered == "tan":
+            if self._is_real_angle_at_tangent_singularity(angle):
+                raise CalculatorError("Tangens für diesen Winkel undefiniert")
             return self._clean_complex(cmath.tan(angle))
         if lowered == "asin":
             result = cmath.asin(value)
@@ -277,6 +288,23 @@ class ExpressionParser:
                 raise CalculatorError(f"{context} braucht einen reellen Wert")
             return value.real
         return value
+
+    def _ensure_finite(self, value: Number) -> Number:
+        if isinstance(value, complex):
+            if not math.isfinite(value.real) or not math.isfinite(value.imag):
+                raise CalculatorError("Ergebnis ist nicht endlich")
+            return value
+        if not math.isfinite(value):
+            raise CalculatorError("Ergebnis ist nicht endlich")
+        return value
+
+    @staticmethod
+    def _is_real_angle_at_tangent_singularity(angle: Number) -> bool:
+        if isinstance(angle, complex):
+            if abs(angle.imag) > 1e-14:
+                return False
+            angle = angle.real
+        return abs(math.cos(angle)) < 1e-12
 
     def _clean_complex(self, value: Number) -> Number:
         if isinstance(value, complex):
