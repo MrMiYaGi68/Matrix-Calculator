@@ -154,7 +154,10 @@ class ExpressionParser:
         value = self._postfix()
         if self._match("^"):
             exponent = self._unary()
-            value = value ** exponent
+            try:
+                value = value ** exponent
+            except ZeroDivisionError as exc:
+                raise CalculatorError("Potenz nicht definiert") from exc
         return value
 
     def _unary(self) -> Number:

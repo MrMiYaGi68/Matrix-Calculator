@@ -65,6 +65,59 @@ class LocalParserTest(unittest.TestCase):
         self.assertIsNotNone(result, f"Parser returned None for: {query}")
         return result
 
+    class DummyLabel:
+        def __init__(self, value: str = ""):
+            self.value = value
+
+        def setText(self, text: str):
+            self.value = text
+
+        def text(self):
+            return self.value
+
+    def make_calculator_logic_window(self, expression: str):
+        window = self.module.MatrixCalculatorWindow.__new__(self.module.MatrixCalculatorWindow)
+        window.expression = expression
+        window.just_evaluated = False
+        window.degrees = True
+        window.history_items = []
+        window.history_dialog = None
+        window.expression_label = self.DummyLabel(expression)
+        window.preview_label = self.DummyLabel("")
+        window.result_label = self.DummyLabel("")
+        translations = {
+            "percent_adjusted": "Prozentwert angepasst",
+            "result_confirmed": "Ergebnis bestätigt",
+            "ready_input": "Bereit für Eingabe",
+            "waiting_for_closing_parentheses": "Wartet auf {count} schließende Klammer(n)",
+            "building_expression": "Ausdruck wird aufgebaut",
+            "finite_number_required": "Kein endlicher Wert",
+        }
+        window._tr = lambda key: translations[key]
+        for name in [
+            "_apply_percent_input",
+            "_last_top_level_operator",
+            "_update_display",
+            "_evaluate",
+            "_balanced_expression",
+            "_try_prime_factorization",
+            "_is_finite_number",
+            "_pretty_expression",
+            "_format_number",
+            "_push_history",
+        ]:
+            if name == "_push_history":
+                window._push_history = lambda expression, result: window.history_items.append((expression, result))
+                continue
+            setattr(
+                window,
+                name,
+                getattr(self.module.MatrixCalculatorWindow, name).__get__(
+                    window, self.module.MatrixCalculatorWindow
+                ),
+            )
+        return window
+
     def test_settings_help_dialog_dependencies_imported(self):
         self.assertTrue(hasattr(self.module, "QDialog"))
         self.assertTrue(hasattr(self.module, "QDialogButtonBox"))
@@ -187,62 +240,36 @@ class LocalParserTest(unittest.TestCase):
         self.assertEqual(window.result_label.text(), "7")
 
     def test_percent_button_uses_calculator_percent_logic(self):
-        class DummyLabel:
-            def __init__(self, value: str = ""):
-                self.value = value
-
-            def setText(self, text: str):
-                self.value = text
-
-            def text(self):
-                return self.value
-
-        window = self.module.MatrixCalculatorWindow.__new__(self.module.MatrixCalculatorWindow)
-        window.expression = "200+10"
-        window.just_evaluated = False
-        window.degrees = True
-        window.history_items = []
-        window.history_dialog = None
-        window.expression_label = DummyLabel("200+10")
-        window.preview_label = DummyLabel("")
-        window.result_label = DummyLabel("210")
-        translations = {
-            "percent_adjusted": "Prozentwert angepasst",
-            "result_confirmed": "Ergebnis bestätigt",
-            "ready_input": "Bereit für Eingabe",
-            "waiting_for_closing_parentheses": "Wartet auf {count} schließende Klammer(n)",
-            "building_expression": "Ausdruck wird aufgebaut",
-            "finite_number_required": "Kein endlicher Wert",
-        }
-        window._tr = lambda key: translations[key]
-        for name in [
-            "_apply_percent_input",
-            "_last_top_level_operator",
-            "_update_display",
-            "_evaluate",
-            "_balanced_expression",
-            "_try_prime_factorization",
-            "_is_finite_number",
-            "_pretty_expression",
-            "_format_number",
-            "_push_history",
-        ]:
-            if name == "_push_history":
-                window._push_history = lambda expression, result: window.history_items.append((expression, result))
-                continue
-            setattr(
-                window,
-                name,
-                getattr(self.module.MatrixCalculatorWindow, name).__get__(
-                    window, self.module.MatrixCalculatorWindow
-                ),
-            )
-
+        window = self.make_calculator_logic_window("200+10")
         window._apply_percent_input()
         self.assertEqual(window.expression, "200+20")
 
         window._evaluate()
         self.assertEqual(window.result_label.text(), "220")
+
+    def test_percent_button_handles_minus_multiply_and_divide_semantics(self):
+        cases = [
+            ("200-10", "200-20", "180"),
+            ("200*10", "200*0.1", "20"),
+            ("200/10", "200/0.1", "2000"),
+        ]
+        for expression, adjusted_expression, expected_result in cases:
+            with self.subTest(expression=expression):
+                window = self.make_calculator_logic_window(expression)
+
+                window._apply_percent_input()
+                self.assertEqual(window.expression, adjusted_expression)
+
+                window._evaluate()
+                self.assertEqual(window.result_label.text(), expected_result)
+
+    def test_failed_evaluation_does_not_push_history(self):
+        window = self.make_calculator_logic_window("1/0")
+
+        window._evaluate()
+
+        self.assertEqual(window.result_label.text(), "ERROR")
+        self.assertEqual(window.history_items, [])
 
     def assert_answer(self, query: str, expected: str):
         _, answer, _ = self.solve(query)

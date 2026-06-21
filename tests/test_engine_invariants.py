@@ -6,6 +6,9 @@ from core.expression_parser import CalculatorError, ExpressionParser
 
 
 class EngineInvariantTest(unittest.TestCase):
+    VALUES = [-9, -3, -1, 0, 1, 2, 5, 10]
+    NON_ZERO = [-9, -3, -1, 1, 2, 5, 10]
+
     def parse(self, expression: str, degrees: bool = True):
         return ExpressionParser(expression, degrees).parse()
 
@@ -16,6 +19,53 @@ class EngineInvariantTest(unittest.TestCase):
             self.assertAlmostEqual(value.imag, expected.imag, places=places, msg=expression)
         else:
             self.assertAlmostEqual(value, expected, places=places, msg=expression)
+
+    def assertCloseValues(self, left, right, *, places: int = 10, label: str = ""):
+        if isinstance(left, complex) or isinstance(right, complex):
+            left = complex(left)
+            right = complex(right)
+            self.assertAlmostEqual(left.real, right.real, places=places, msg=label)
+            self.assertAlmostEqual(left.imag, right.imag, places=places, msg=label)
+        else:
+            self.assertAlmostEqual(left, right, places=places, msg=label)
+
+    def test_addition_and_multiplication_commute(self):
+        for a in self.VALUES:
+            for b in self.VALUES:
+                with self.subTest(a=a, b=b, op="+"):
+                    self.assertCloseValues(self.parse(f"{a}+{b}"), self.parse(f"{b}+{a}"), label=f"{a}+{b}")
+                with self.subTest(a=a, b=b, op="*"):
+                    self.assertCloseValues(self.parse(f"{a}*{b}"), self.parse(f"{b}*{a}"), label=f"{a}*{b}")
+
+    def test_identity_laws(self):
+        for value in self.VALUES:
+            expression_value = f"({value})"
+            with self.subTest(value=value):
+                self.assertClose(expression_value + "+0", value)
+                self.assertClose(expression_value + "-0", value)
+                self.assertClose(expression_value + "*1", value)
+                self.assertClose(expression_value + "/1", value)
+                self.assertClose(expression_value + f"-({value})", 0)
+                self.assertClose(expression_value + "*0", 0)
+                self.assertClose(expression_value + "^1", value)
+                if value != 0:
+                    self.assertClose(expression_value + "^0", 1)
+                    self.assertClose(expression_value + f"/({value})", 1)
+                self.assertClose(f"sqrt(({value})^2)", abs(value))
+
+    def test_inverse_trig_identities(self):
+        for value in [-1, -0.5, 0, 0.5, 1]:
+            with self.subTest(value=value, function="sin_asin"):
+                self.assertClose(f"sin(asin({value}))", value)
+            with self.subTest(value=value, function="cos_acos"):
+                self.assertClose(f"cos(acos({value}))", value)
+        for angle in [-45, 0, 30, 45]:
+            with self.subTest(angle=angle, function="atan_tan"):
+                self.assertClose(f"atan(tan({angle}))", angle)
+
+    def test_complex_identities(self):
+        self.assertClose("(1+i)+(1-i)", 2)
+        self.assertClose("sqrt(-1)^2", -1)
 
     def test_operator_precedence_and_power_associativity(self):
         cases = {

@@ -14,14 +14,18 @@ class EngineErrorBoundaryTest(unittest.TestCase):
             self.parse(expression, degrees=degrees)
 
     def test_rejects_arithmetic_domain_errors(self):
-        for expression in ("1/0", "10 mod 0", "(-1)!", "2.5!", "2001!"):
+        for expression in ("1/0", "10 mod 0", "0^(-1)", "(-1)!", "2.5!", "2001!", "999999!"):
             with self.subTest(expression=expression):
                 self.assertParserError(expression)
 
     def test_rejects_invalid_token_boundaries(self):
-        for expression in ("1.2.3", "1e+", "unknown(2)", "abc", "@"):
+        for expression in ("1.2.3", "1e+", "unknown(2)", "sin()", "sqrt()", "abc", "abc+++", "@", "))))"):
             with self.subTest(expression=expression):
                 self.assertParserError(expression)
+
+    def test_extreme_balanced_parentheses_do_not_crash(self):
+        expression = "(" * 20 + "1" + ")" * 20
+        self.assertEqual(self.parse(expression), 1)
 
     def test_rejects_non_finite_numeric_literals_and_results(self):
         for expression in ("1e309", "1e309+1", "nan", "inf"):

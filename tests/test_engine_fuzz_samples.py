@@ -14,6 +14,9 @@ class EngineDeterministicFuzzSampleTest(unittest.TestCase):
             "(1+2)*3",
             "10/(2+3)",
             "2^3^2",
+            "(-3)^2",
+            "square(-3+5)",
+            "abs(-3-5)",
             "1e3+2",
             "1e-2+3",
         ]
@@ -24,12 +27,20 @@ class EngineDeterministicFuzzSampleTest(unittest.TestCase):
             op1 = rng.choice(operators)
             op2 = rng.choice(operators)
             samples.append(f"({a}{op1}{b}){op2}{c}")
+            samples.append(f"{a}+({b}{op1}{c})")
+            samples.append(f"({a}*{b})+({c}*{a})")
+            samples.append(f"abs({a}-{b})")
+            samples.append(f"square({a}+{b})")
 
         for expression in samples:
             with self.subTest(expression=expression):
                 parser_value = ExpressionParser(expression, degrees=True).parse()
                 python_expression = expression.replace("^", "**")
-                python_value = eval(python_expression, {"__builtins__": {}}, {})
+                python_value = eval(
+                    python_expression,
+                    {"__builtins__": {}},
+                    {"abs": abs, "square": lambda value: value * value},
+                )
                 self.assertAlmostEqual(parser_value, python_value, places=10)
 
 
