@@ -1,23 +1,23 @@
 # Flathub Submission Notes
 
-Current status as of 2026-04-29:
+Current status as of 2026-06-21:
 
 - GitHub repository: `MrMiYaGi68/Matrix-Calculator`
-- Release asset checked: `v1.0.0 / matrix_calculator-1.0.0.tar.gz`
+- Release asset prepared: `v1.5.0 / matrix_calculator-1.5.0.tar.gz`
 - Flatpak manifest updated to use `io.qt.PySide.BaseApp`
-- Flatpak manifest SHA currently matches the published release tarball
+- Flatpak manifest SHA tracks the 1.5.0 source archive
 - AppStream metadata validates locally
 
 Validation results:
 
 - `appstreamcli validate --no-net io.github.MrMiYaGi68.MatrixCalculator.metainfo.xml`
   passes
-- `flatpak-builder-lint manifest io.github.MrMiYaGi68.MatrixCalculator.json`
-  reports:
-  - `appid-url-not-reachable`
-  - `runtime-update-available-to-org.kde.Platform-6.10` (warning)
+- `desktop-file-validate MatrixCalculator.desktop io.github.MrMiYaGi68.MatrixCalculator.desktop`
+  passes with no output
+- `python3 -m json.tool io.github.MrMiYaGi68.MatrixCalculator.json`
+  parses successfully
 
-Why the linter fails:
+Known Flathub review note:
 
 - The Flatpak ID `io.github.MrMiYaGi68.MatrixCalculator` maps to
   `https://github.com/mrmiyagi68/matrixcalculator`
@@ -38,7 +38,7 @@ Cleaner future path:
 1. Rename the Flatpak ID to a GitHub-mappable form such as
    `io.github.mrmiyagi68.matrix_calculator`
 2. Rename the Flatpak metadata files accordingly
-3. Rebuild `dist/matrix_calculator-1.0.0.tar.gz`
+3. Rebuild `dist/matrix_calculator-1.5.0.tar.gz`
 4. Replace the GitHub release asset
 5. Update the manifest SHA to the new tarball checksum
 

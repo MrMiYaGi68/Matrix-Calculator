@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
+import hashlib
 import json
 import os
 import tempfile
@@ -84,6 +85,17 @@ class SecurityReleaseTest(unittest.TestCase):
             "matrix_calculator-1.5.0.tar.gz",
         )
         self.assertRegex(source["sha256"], r"^[0-9a-f]{64}$")
+
+    def test_flatpak_manifest_sha_matches_local_dist_archive_when_present(self):
+        archive_path = PROJECT_ROOT / "dist" / "matrix_calculator-1.5.0.tar.gz"
+        if not archive_path.exists():
+            self.skipTest("Local release archive has not been built")
+
+        manifest = json.loads((PROJECT_ROOT / "io.github.MrMiYaGi68.MatrixCalculator.json").read_text(encoding="utf-8"))
+        source = manifest["modules"][0]["sources"][0]
+        digest = hashlib.sha256(archive_path.read_bytes()).hexdigest()
+
+        self.assertEqual(source["sha256"], digest)
 
     def test_release_metadata_is_1_5_ready(self):
         pyproject = tomllib.loads((PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8"))

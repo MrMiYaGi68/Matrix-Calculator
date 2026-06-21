@@ -48,6 +48,14 @@ class ProjectGovernanceTest(unittest.TestCase):
         self.assertIn(".egg-info", text)
         self.assertIn(".whl", text)
 
+    def test_flathub_submission_notes_match_current_release(self):
+        text = (PROJECT_ROOT / "docs" / "FLATHUB_SUBMISSION.md").read_text(encoding="utf-8")
+
+        self.assertIn("2026-06-21", text)
+        self.assertIn("matrix_calculator-1.5.0.tar.gz", text)
+        self.assertNotIn("matrix_calculator-1.0.0.tar.gz", text)
+        self.assertNotIn("Current status as of 2026-04-29", text)
+
 
 if __name__ == "__main__":
     unittest.main()
