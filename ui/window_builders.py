@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 
-from PySide6.QtGui import QIcon
 from PySide6.QtCore import QSize, Qt
 from PySide6.QtWidgets import (
     QButtonGroup,
@@ -14,23 +13,20 @@ from PySide6.QtWidgets import (
     QPushButton,
     QScrollArea,
     QSizePolicy,
-    QStyle,
     QTextBrowser,
     QVBoxLayout,
 )
 
 from ui.assistant_widgets import QueryInput
-from ui.button_config import BUTTON_COLUMN_COUNT, BUTTON_COLUMN_SPANS, BUTTON_ROWS, button_tooltip_key
+from ui.button_config import (
+    BUTTON_COLUMN_COUNT,
+    BUTTON_ROWS,
+    button_tooltip_key,
+    scientific_button_group,
+    scientific_button_position,
+)
 from ui.dialogs import HistoryDialog, SkillsDialog
-
-
-def _settings_gear_icon(window) -> QIcon:
-    icon = QIcon.fromTheme("settings-configure")
-    if icon.isNull():
-        icon = QIcon.fromTheme("preferences-system")
-    if icon.isNull():
-        icon = window.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogDetailedView)
-    return icon
+from ui.icons import apply_window_icons
 
 
 def build_left_panel_content(window, left_layout, *, button_class) -> None:
@@ -55,7 +51,6 @@ def build_left_panel_content(window, left_layout, *, button_class) -> None:
     window.header_settings_button.setObjectName("iconButton")
     window.header_settings_button.setCursor(Qt.PointingHandCursor)
     window.header_settings_button.setText("")
-    window.header_settings_button.setIcon(_settings_gear_icon(window))
     window.header_settings_button.setIconSize(QSize(18, 18))
     window.header_settings_button.setToolTip("Einstellungen")
     window.header_settings_button.clicked.connect(window._open_settings_dialog)
@@ -103,7 +98,6 @@ def build_left_panel_content(window, left_layout, *, button_class) -> None:
     window.history_button = QPushButton("Verlauf")
     window.history_button.setObjectName("utilityButton")
     window.history_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
-    window.history_button.setIcon(window.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogDetailedView))
     window.history_button.setIconSize(QSize(16, 16))
     window.history_button.clicked.connect(window._open_history_dialog)
     top_controls_row.addWidget(window.history_button)
@@ -152,11 +146,23 @@ def build_left_panel_content(window, left_layout, *, button_class) -> None:
         window.controls_grid.setColumnStretch(column, 1)
     window.controls_layout.addLayout(window.controls_grid)
 
+    window.basic_group_separator = QFrame()
+    window.basic_group_separator.setObjectName("basicGroupSeparator")
+    window.basic_group_separator.setFixedHeight(1)
+    window.controls_grid.addWidget(window.basic_group_separator, 4, 0, 1, BUTTON_COLUMN_COUNT)
+
     for row_index, row in enumerate(BUTTON_ROWS):
         for col_index, label in enumerate(row):
             role = window._button_role(label)
             button = button_class(label, role)
             button.setProperty("baseLabel", label)
+            button.setProperty("sourceRow", row_index)
+            button.setProperty("sourceColumn", col_index)
+            button.setProperty("scientificGroup", scientific_button_group(label))
+            button.setProperty("primaryOperator", label in {"×", "-", "+"})
+            if label == "⌫":
+                button.setText("")
+                button.setIconSize(QSize(20, 20))
             window.all_calc_buttons.append(button)
             button.clicked.connect(lambda checked=False, value=label: window._handle_button(value))
             shortcut_hint = window._button_shortcut_hint(label)
@@ -165,8 +171,8 @@ def build_left_panel_content(window, left_layout, *, button_class) -> None:
             tooltip_key = button_tooltip_key(label)
             if tooltip_key:
                 button.setToolTip(window._tr(tooltip_key))
-            span = BUTTON_COLUMN_SPANS.get(label, 1)
-            window.controls_grid.addWidget(button, row_index, col_index, 1, span)
+            target_row, target_column, span = scientific_button_position(row_index, col_index, label)
+            window.controls_grid.addWidget(button, target_row, target_column, 1, span)
             window.row_groups.setdefault(row_index, []).append(button)
             if label in window.second_pairs:
                 window.toggle_buttons[label] = button
@@ -196,11 +202,17 @@ def build_assistant_panel_content(window, right_layout) -> None:
     window.ai_status.setWordWrap(True)
     ai_layout.addWidget(window.ai_status)
 
+    window.assistant_context = QLabel()
+    window.assistant_context.setObjectName("assistantContext")
+    window.assistant_context.setWordWrap(True)
+    window.assistant_context.setTextInteractionFlags(Qt.TextSelectableByMouse)
+    ai_layout.addWidget(window.assistant_context)
+
     window.assistant_query_panel = QFrame()
     window.assistant_query_panel.setObjectName("assistantQueryPanel")
     query_column = QVBoxLayout(window.assistant_query_panel)
-    query_column.setContentsMargins(10, 10, 10, 10)
-    query_column.setSpacing(10)
+    query_column.setContentsMargins(0, 0, 0, 0)
+    query_column.setSpacing(8)
     ai_layout.addWidget(window.assistant_query_panel)
 
     window.ai_input = QueryInput()
@@ -223,29 +235,28 @@ def build_assistant_panel_content(window, right_layout) -> None:
     window.ai_live_preview.setWordWrap(True)
     query_column.addWidget(window.ai_live_preview)
 
-    action_grid = QGridLayout()
-    action_grid.setHorizontalSpacing(8)
-    action_grid.setVerticalSpacing(8)
-    ai_layout.addLayout(action_grid)
-
-    window.settings_button = QPushButton("Einstellungen")
-    window.settings_button.setObjectName("toolButton")
-    window.settings_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-    window.settings_button.setIcon(_settings_gear_icon(window))
-    window.settings_button.setIconSize(QSize(16, 16))
-    window.settings_button.clicked.connect(window._open_settings_dialog)
-    action_grid.addWidget(window.settings_button, 0, 0)
-
-    window.chatgpt_web_button = QPushButton("ChatGPT")
-    window.chatgpt_web_button.setObjectName("toolButton")
-    window.chatgpt_web_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-    window.chatgpt_web_button.setIcon(window.style().standardIcon(QStyle.StandardPixmap.SP_DialogHelpButton))
-    window.chatgpt_web_button.setIconSize(QSize(16, 16))
-    window.chatgpt_web_button.clicked.connect(window._open_chatgpt_web_for_current_query)
-    action_grid.addWidget(window.chatgpt_web_button, 0, 1)
-
-    action_grid.setColumnStretch(0, 1)
-    action_grid.setColumnStretch(1, 1)
+    window.assistant_examples = QFrame()
+    window.assistant_examples.setObjectName("assistantExamples")
+    examples_layout = QVBoxLayout(window.assistant_examples)
+    examples_layout.setContentsMargins(0, 4, 0, 4)
+    examples_layout.setSpacing(6)
+    window.assistant_examples_label = QLabel()
+    window.assistant_examples_label.setObjectName("assistantExamplesLabel")
+    examples_layout.addWidget(window.assistant_examples_label)
+    window.assistant_example_buttons = []
+    for _ in range(3):
+        example_button = QPushButton()
+        example_button.setObjectName("exampleButton")
+        example_button.setCursor(Qt.PointingHandCursor)
+        example_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        example_button.clicked.connect(
+            lambda checked=False, button=example_button: window._run_assistant_example(
+                button.property("query") or ""
+            )
+        )
+        examples_layout.addWidget(example_button)
+        window.assistant_example_buttons.append(example_button)
+    ai_layout.addWidget(window.assistant_examples)
 
     window.mode_preference = QComboBox()
     window.mode_preference.setObjectName("modeSelect")
@@ -272,12 +283,45 @@ def build_assistant_panel_content(window, right_layout) -> None:
     window.ai_result.setPlaceholderText(window._tr("assistant_output_placeholder"))
     ai_layout.addWidget(window.ai_result, 1)
 
+    assistant_toolbar = QHBoxLayout()
+    assistant_toolbar.setSpacing(8)
+    ai_layout.addLayout(assistant_toolbar)
+
+    window.settings_button = QPushButton("Einstellungen")
+    window.settings_button.setObjectName("utilityButton")
+    window.settings_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+    window.settings_button.setIconSize(QSize(16, 16))
+    window.settings_button.clicked.connect(window._open_settings_dialog)
+    assistant_toolbar.addWidget(window.settings_button)
+
+    window.chatgpt_web_button = QPushButton("ChatGPT")
+    window.chatgpt_web_button.setObjectName("utilityButton")
+    window.chatgpt_web_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+    window.chatgpt_web_button.setIconSize(QSize(16, 16))
+    window.chatgpt_web_button.clicked.connect(window._open_chatgpt_web_for_current_query)
+    assistant_toolbar.addWidget(window.chatgpt_web_button)
+    assistant_toolbar.addStretch()
+
     window.clear_ai_button = QPushButton("KI-Verlauf löschen")
-    window.clear_ai_button.setObjectName("ghostButton")
-    window.clear_ai_button.setIcon(window.style().standardIcon(QStyle.StandardPixmap.SP_TrashIcon))
+    window.clear_ai_button.setObjectName("utilityButton")
     window.clear_ai_button.setIconSize(QSize(16, 16))
     window.clear_ai_button.clicked.connect(window._clear_ai_chat)
-    action_grid.addWidget(window.clear_ai_button, 1, 0, 1, 2)
+    assistant_toolbar.addWidget(window.clear_ai_button)
+
+    window.setTabOrder(window.basic_mode_button, window.scientific_mode_button)
+    window.setTabOrder(window.scientific_mode_button, window.history_button)
+    window.setTabOrder(window.history_button, window.ai_toggle_button)
+    window.setTabOrder(window.ai_toggle_button, window.ai_input)
+    window.setTabOrder(window.ai_input, window.solve_button)
+    window.setTabOrder(window.solve_button, window.assistant_example_buttons[0])
+    window.setTabOrder(window.assistant_example_buttons[0], window.assistant_example_buttons[1])
+    window.setTabOrder(window.assistant_example_buttons[1], window.assistant_example_buttons[2])
+    window.setTabOrder(window.assistant_example_buttons[2], window.ai_result)
+    window.setTabOrder(window.ai_result, window.settings_button)
+    window.setTabOrder(window.settings_button, window.chatgpt_web_button)
+    window.setTabOrder(window.chatgpt_web_button, window.clear_ai_button)
+    apply_window_icons(window)
+    window._refresh_assistant_examples()
 
 
 def build_auxiliary_dialogs(window) -> None:

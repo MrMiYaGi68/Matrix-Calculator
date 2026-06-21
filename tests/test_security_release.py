@@ -68,13 +68,27 @@ class SecurityReleaseTest(unittest.TestCase):
             "<launchable type=\"desktop-id\">io.github.MrMiYaGi68.MatrixCalculator.desktop</launchable>",
             text,
         )
+        self.assertIn("<release version=\"1.5.0\" date=\"2026-06-21\"/>", text)
         self.assertIn("<release version=\"1.0.2\" date=\"2026-06-20\"/>", text)
         self.assertIn("<release version=\"1.0.1\" date=\"2026-04-29\"/>", text)
 
-    def test_release_metadata_is_1_0_ready(self):
+    def test_flatpak_manifest_tracks_1_5_release_archive(self):
+        manifest_path = PROJECT_ROOT / "io.github.MrMiYaGi68.MatrixCalculator.json"
+        if not manifest_path.exists():
+            self.skipTest("Flatpak manifest is maintained outside the self-hashed source archive")
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        source = manifest["modules"][0]["sources"][0]
+        self.assertEqual(
+            source["url"],
+            "https://github.com/MrMiYaGi68/Matrix-Calculator/releases/download/v1.5.0/"
+            "matrix_calculator-1.5.0.tar.gz",
+        )
+        self.assertRegex(source["sha256"], r"^[0-9a-f]{64}$")
+
+    def test_release_metadata_is_1_5_ready(self):
         pyproject = tomllib.loads((PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
         project = pyproject["project"]
-        self.assertEqual(project["version"], "1.0.2")
+        self.assertEqual(project["version"], "1.5.0")
         self.assertIn("Development Status :: 5 - Production/Stable", project["classifiers"])
         self.assertEqual(project["license"], "GPL-3.0-or-later")
         self.assertEqual(project["license-files"], ["LICENSE"])
@@ -82,25 +96,25 @@ class SecurityReleaseTest(unittest.TestCase):
         self.assertNotIn("requests>=2.31", project["dependencies"])
 
         changelog = (PROJECT_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-        self.assertIn("## 1.0.2 - 2026-06-20", changelog)
+        self.assertIn("## 1.5.0 - 2026-06-21", changelog)
         self.assertNotIn("Unreleased", changelog)
 
     def test_project_version_prefers_source_pyproject(self):
         with tempfile.TemporaryDirectory() as tmp:
             pyproject_path = Path(tmp) / "pyproject.toml"
-            pyproject_path.write_text("[project]\nversion = \"1.0.2\"\n", encoding="utf-8")
+            pyproject_path.write_text("[project]\nversion = \"1.5.0\"\n", encoding="utf-8")
             window = MatrixCalculatorWindow.__new__(MatrixCalculatorWindow)
             window.PYPROJECT_PATH = pyproject_path
 
             with patch("calculator.package_version", return_value="1.0.1"):
-                self.assertEqual(window._project_version(), "1.0.2")
+                self.assertEqual(window._project_version(), "1.5.0")
 
     def test_project_version_uses_package_metadata_when_pyproject_is_absent(self):
         window = MatrixCalculatorWindow.__new__(MatrixCalculatorWindow)
         window.PYPROJECT_PATH = Path("/tmp/matrix-calculator-missing-pyproject.toml")
 
-        with patch("calculator.package_version", return_value="1.0.2"):
-            self.assertEqual(window._project_version(), "1.0.2")
+        with patch("calculator.package_version", return_value="1.5.0"):
+            self.assertEqual(window._project_version(), "1.5.0")
 
     def test_load_settings_removes_legacy_openai_api_key(self):
         with tempfile.TemporaryDirectory() as tmp:

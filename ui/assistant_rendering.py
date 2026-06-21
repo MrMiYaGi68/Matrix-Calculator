@@ -9,6 +9,7 @@ _LINK_PATTERN = re.compile(r"(https://[^\s<]+)")
 _CHATGPT_QUERY_PATTERN = re.compile(r"https://chatgpt\.com/\?q=[^<\s]+")
 _TASK_RECOGNIZED_LINES = {"Aufgabe erkannt", "Task recognized"}
 _EXPLANATION_LABELS = {"Erklärung", "Vorgehen", "Explanation", "Method"}
+_RESULT_LABELS = {"Ergebnis", "Result", "Resultado", "Résultat", "Risultato", "Sonuç"}
 
 
 def format_rich_text_block(
@@ -24,7 +25,7 @@ def format_rich_text_block(
         safe,
     )
     return (
-        f"<html><body style=\"font-family:'DejaVu Sans', 'Noto Sans', sans-serif; font-size:14px; line-height:1.5; color:{text_color}; background:{body_bg};\">"
+        f"<html><body style=\"font-family:'DejaVu Sans', 'Noto Sans', sans-serif; font-size:16px; line-height:1.5; color:{text_color}; background:{body_bg};\">"
         + safe.replace("\n", "<br>")
         + "</body></html>"
     )
@@ -94,8 +95,8 @@ def format_ai_message_html(role: str, text: str, colors: dict[str, str] | None =
                       background:{palette["explanation_bg"]};
                       border:1px solid {palette["explanation_border"]};
                     ">
-                      <div style="font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:{palette["explanation_label"]}; margin-bottom:6px;">{label}</div>
-                      <div style="font-size:15px; line-height:1.5; color:{palette["explanation_fg"]};">{value}</div>
+                      <div style="font-size:12px; font-weight:600; color:{palette["explanation_label"]}; margin-bottom:6px;">{label}</div>
+                      <div style="font-size:16px; line-height:1.5; color:{palette["explanation_fg"]};">{value}</div>
                     </div>
                     """
                 )
@@ -109,13 +110,13 @@ def format_ai_message_html(role: str, text: str, colors: dict[str, str] | None =
                       background:{palette["section_bg"]};
                       border:1px solid {palette["section_border"]};
                     ">
-                      <div style="font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:{palette["section_label"]}; margin-bottom:6px;">{label}</div>
-                      <div style="font-size:{'24px' if label == 'Ergebnis' else '16px'}; line-height:1.4; color:{palette["section_fg"]}; font-weight:{'700' if label == 'Ergebnis' else '500'};">{value}</div>
+                      <div style="font-size:12px; font-weight:600; color:{palette["section_label"]}; margin-bottom:6px;">{label}</div>
+                      <div style="font-size:{'24px' if label in _RESULT_LABELS else '16px'}; line-height:1.4; color:{palette["section_fg"]}; font-weight:{'700' if label in _RESULT_LABELS else '500'};">{value}</div>
                     </div>
                     """
                 )
         else:
-            blocks.append(f"<div style='font-size:15px; line-height:1.5; color:{palette['plain_fg']};'>{html.escape(line)}</div>")
+            blocks.append(f"<div style='font-size:16px; line-height:1.5; color:{palette['plain_fg']};'>{html.escape(line)}</div>")
         i += 1
     return note + "".join(blocks)
 
@@ -146,7 +147,7 @@ def render_ai_chat_html(
                 font-size:16px;
                 line-height:1.45;
               ">
-                <div style="font-size:12px; opacity:0.74; margin-bottom:8px;">{title}</div>
+                <div style="font-size:12px; font-weight:600; opacity:0.78; margin-bottom:8px;">{title}</div>
                 <div>{safe_text}</div>
               </div>
             </div>

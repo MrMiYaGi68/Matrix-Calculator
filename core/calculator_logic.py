@@ -149,6 +149,8 @@ def evaluate_expression(window) -> None:
     except (CalculatorError, OverflowError, ValueError) as exc:
         window.result_label.setText("ERROR")
         _set_preview(window, str(exc), "error")
+        if hasattr(window, "_refresh_assistant_context"):
+            window._refresh_assistant_context()
 
 
 def update_display(window) -> None:

@@ -54,7 +54,11 @@ def prepare_settings_dialog(
 ) -> None:
     dialog.setModal(False)
     dialog.setWindowModality(Qt.NonModal)
-    dialog.theme_select.setCurrentText(current_theme_label)
+    theme_index = dialog.theme_select.findData(current_theme_label.strip().lower())
+    if theme_index < 0:
+        theme_index = dialog.theme_select.findText(current_theme_label)
+    if theme_index >= 0:
+        dialog.theme_select.setCurrentIndex(theme_index)
     dialog.mode_select.setCurrentText(current_mode_label)
     dialog.model_value_label.setText(current_model_label)
     dialog.step_checkbox.setChecked(step_by_step)

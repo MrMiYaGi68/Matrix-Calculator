@@ -44,6 +44,9 @@ class ProjectGovernanceTest(unittest.TestCase):
         self.assertIn("validate_release_zip", text)
         self.assertIn("__pycache__", text)
         self.assertIn(".pyc", text)
+        self.assertIn('"dist"', text)
+        self.assertIn(".egg-info", text)
+        self.assertIn(".whl", text)
 
 
 if __name__ == "__main__":

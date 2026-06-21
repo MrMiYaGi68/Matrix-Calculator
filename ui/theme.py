@@ -20,6 +20,7 @@ _PALETTES: dict[str, dict[str, str]] = {
         "danger_soft_border": "#58616f", "clear": "#bd4040", "clear_border": "#dd6262",
         "clear_hover": "#cf5151", "accent": "#ff9f0a", "accent_hover": "#ffae2e",
         "accent_border": "#ffc05d", "accent_text": "#101317", "blue": "#7da2ff",
+        "focus": "#8bb4ff",
         "blue_bg": "#1b2836", "blue_border": "#2f557d", "blue_text": "#dceaff",
         "scrollbar": "#4b5563", "scrollbar_hover": "#647184",
         "chip_accent": "#27313d", "chip_good": "#22392e", "chip_warm": "#ff9f0a",
@@ -37,6 +38,7 @@ _PALETTES: dict[str, dict[str, str]] = {
         "danger_soft_border": "#60695f", "clear": "#be4444", "clear_border": "#de6969",
         "clear_hover": "#cf5656", "accent": "#ff9f0a", "accent_hover": "#ffb02f",
         "accent_border": "#ffc060", "accent_text": "#0d1513", "blue": "#7fc7ff",
+        "focus": "#8fd4ff",
         "blue_bg": "#15293a", "blue_border": "#2e617e", "blue_text": "#dff4ff",
         "scrollbar": "#45635a", "scrollbar_hover": "#5d8175",
         "chip_accent": "#203932", "chip_good": "#1d4335", "chip_warm": "#ff9f0a",
@@ -54,6 +56,7 @@ _PALETTES: dict[str, dict[str, str]] = {
         "danger_soft_border": "#858585", "clear": "#d43b3b", "clear_border": "#ff8f8f",
         "clear_hover": "#e74f4f", "accent": "#ffb000", "accent_hover": "#ffc13d",
         "accent_border": "#ffe08a", "accent_text": "#000000", "blue": "#8ec5ff",
+        "focus": "#ffffff",
         "blue_bg": "#061d35", "blue_border": "#69aee9", "blue_text": "#ffffff",
         "scrollbar": "#777777", "scrollbar_hover": "#9b9b9b",
         "chip_accent": "#202020", "chip_good": "#143b28", "chip_warm": "#ffb000",
@@ -70,7 +73,8 @@ _PALETTES: dict[str, dict[str, str]] = {
         "mode": "#e8edf3", "mode_border": "#c7d0dc", "danger_soft": "#eef0f3",
         "danger_soft_border": "#c9d0d8", "clear": "#c83e3e", "clear_border": "#e17878",
         "clear_hover": "#d85353", "accent": "#e88b00", "accent_hover": "#f59b16",
-        "accent_border": "#f1b657", "accent_text": "#ffffff", "blue": "#356fd6",
+        "accent_border": "#c87300", "accent_text": "#151a21", "blue": "#356fd6",
+        "focus": "#245fca",
         "blue_bg": "#eaf2ff", "blue_border": "#bad0f5", "blue_text": "#1e477f",
         "scrollbar": "#aeb8c5", "scrollbar_hover": "#909dad",
         "chip_accent": "#e9eef5", "chip_good": "#e6f3ec", "chip_warm": "#e88b00",
@@ -128,9 +132,12 @@ def build_stylesheet(theme_name: str) -> str:
         QPushButton#iconButton:hover {
             background: $button_hover;
         }
+        QPushButton#iconButton:pressed {
+            background: $raised;
+        }
         QLabel#panelTitle {
             color: $text;
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
         }
         QLabel#panelHint {
@@ -257,6 +264,10 @@ def build_stylesheet(theme_name: str) -> str:
             background: transparent;
             border: none;
         }
+        QFrame#basicGroupSeparator {
+            background: $border;
+            border: none;
+        }
         QFrame#displayPanel {
             background: $display;
             border: 1px solid $display_border;
@@ -266,6 +277,20 @@ def build_stylesheet(theme_name: str) -> str:
             background: $assistant;
             border: 1px solid $strong_border;
             border-radius: 12px;
+        }
+        QFrame#assistantPanel {
+            background: transparent;
+            border: none;
+            border-radius: 0px;
+        }
+        QLabel#assistantContext {
+            color: $soft_text;
+            background: $raised;
+            border: 1px solid $border;
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-family: "DejaVu Sans Mono", "Noto Sans Mono", monospace;
+            font-size: 13px;
         }
         QDialog {
             background: $panel;
@@ -363,10 +388,16 @@ def build_stylesheet(theme_name: str) -> str:
         QPushButton#modeSegmentButton:hover {
             background: $button_hover;
         }
+        QPushButton#modeSegmentButton:pressed {
+            background: $raised;
+        }
         QPushButton#modeSegmentButton:checked {
             background: $mode;
             color: $text;
             border: 2px solid $mode_border;
+        }
+        QPushButton#modeSegmentButton:checked:hover {
+            background: $button_hover;
         }
         QPushButton#ghostButton, QPushButton#toolButton, QPushButton#utilityButton {
             background: $button;
@@ -389,6 +420,9 @@ def build_stylesheet(theme_name: str) -> str:
         QPushButton#ghostButton:hover, QPushButton#toolButton:hover, QPushButton#utilityButton:hover {
             background: $button_hover;
         }
+        QPushButton#ghostButton:pressed, QPushButton#toolButton:pressed, QPushButton#utilityButton:pressed {
+            background: $raised;
+        }
         QPushButton#assistantToggleButton {
             background: $button;
             color: $text;
@@ -403,10 +437,16 @@ def build_stylesheet(theme_name: str) -> str:
         QPushButton#assistantToggleButton:hover {
             background: $button_hover;
         }
-        QPushButton#assistantToggleButton[assistantVisible="false"] {
-            background: $blue_bg;
-            color: $blue_text;
-            border: 1px solid $blue_border;
+        QPushButton#assistantToggleButton:pressed {
+            background: $raised;
+        }
+        QPushButton#assistantToggleButton[assistantVisible="true"] {
+            background: $mode;
+            color: $text;
+            border: 2px solid $mode_border;
+        }
+        QPushButton#assistantToggleButton[assistantVisible="true"]:hover {
+            background: $button_hover;
         }
         QPushButton#primaryButton, QPushButton#solveButton {
             background: $accent;
@@ -420,9 +460,9 @@ def build_stylesheet(theme_name: str) -> str:
             min-width: 120px;
         }
         QPushButton#solveButton {
-            background: $button;
-            color: $text;
-            border: 1px solid $button_border;
+            background: $accent;
+            color: $accent_text;
+            border: 1px solid $accent_border;
             font-size: 16px;
             font-weight: 750;
         }
@@ -430,25 +470,28 @@ def build_stylesheet(theme_name: str) -> str:
             background: $accent_hover;
         }
         QPushButton#solveButton:hover {
-            background: $button_hover;
+            background: $accent_hover;
+        }
+        QPushButton#primaryButton:pressed, QPushButton#solveButton:pressed {
+            background: $accent;
         }
         QFrame#assistantQueryPanel {
-            background: $status_bg;
-            border: 1px solid $border;
-            border-radius: 12px;
+            background: transparent;
+            border: none;
+            border-radius: 0px;
         }
         QTextEdit#queryInput, QPlainTextEdit#queryInput {
             background: $input;
             color: $text;
             border: 1px solid $button_border;
-            border-radius: 14px;
-            padding: 14px 16px;
-            font-size: 21px;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 18px;
             font-weight: 500;
-            min-height: 138px;
+            min-height: 104px;
         }
         QTextEdit#queryInput:focus, QPlainTextEdit#queryInput:focus {
-            border: 1px solid $blue;
+            border: 2px solid $focus;
             background: $input_focus;
         }
         QLabel#queryPreview {
@@ -474,6 +517,35 @@ def build_stylesheet(theme_name: str) -> str:
             color: $text;
             background: $danger_soft;
             border: 1px solid $clear_border;
+        }
+        QFrame#assistantExamples {
+            background: transparent;
+            border: none;
+        }
+        QLabel#assistantExamplesLabel {
+            color: $muted;
+            font-size: 13px;
+            padding: 2px 2px 4px 2px;
+        }
+        QPushButton#exampleButton {
+            background: transparent;
+            color: $soft_text;
+            border: 1px solid $border;
+            border-radius: 8px;
+            padding: 9px 12px;
+            text-align: left;
+            font-size: 14px;
+            min-height: 38px;
+        }
+        QPushButton#exampleButton:hover {
+            background: $blue_bg;
+            color: $blue_text;
+            border-color: $blue_border;
+        }
+        QPushButton#exampleButton:pressed {
+            background: $raised;
+            color: $text;
+            border-color: $button_border;
         }
         QTextEdit#assistantOutput, QTextBrowser#assistantOutput {
             background: $output;
@@ -539,16 +611,33 @@ def build_stylesheet(theme_name: str) -> str:
         QPushButton[role="number"]:hover {
             background: $number_hover;
         }
+        QPushButton[role="number"]:pressed {
+            background: $raised;
+        }
         QPushButton[role="operator"] {
-            background: $accent;
-            color: $accent_text;
-            border: 1px solid $accent_border;
+            background: $function;
+            color: $text;
+            border: 1px solid $function_border;
             border-radius: 11px;
             font-size: 20px;
             font-weight: 700;
         }
         QPushButton[role="operator"]:hover {
+            background: $function_hover;
+        }
+        QPushButton[role="operator"]:pressed {
+            background: $raised;
+        }
+        QPushButton[role="operator"][primaryOperator="true"] {
+            background: $accent;
+            color: $accent_text;
+            border: 1px solid $accent_border;
+        }
+        QPushButton[role="operator"][primaryOperator="true"]:hover {
             background: $accent_hover;
+        }
+        QPushButton[role="operator"][primaryOperator="true"]:pressed {
+            background: $accent;
         }
         QPushButton[role="function"] {
             background: $function;
@@ -561,6 +650,17 @@ def build_stylesheet(theme_name: str) -> str:
         QPushButton[role="function"]:hover {
             background: $function_hover;
         }
+        QPushButton[role="function"]:pressed {
+            background: $raised;
+        }
+        QPushButton[basicGroup="entry"] {
+            background: $raised;
+            border-color: $button_border;
+        }
+        QPushButton[basicGroup="function"] {
+            background: $function;
+            border-color: $function_border;
+        }
         QPushButton[role="memory"] {
             background: $memory;
             color: $text;
@@ -569,6 +669,12 @@ def build_stylesheet(theme_name: str) -> str:
             font-size: 15px;
             font-weight: 600;
         }
+        QPushButton[role="memory"]:hover {
+            background: $button_hover;
+        }
+        QPushButton[role="memory"]:pressed {
+            background: $raised;
+        }
         QPushButton[role="danger"] {
             background: $danger_soft;
             color: $text;
@@ -576,6 +682,12 @@ def build_stylesheet(theme_name: str) -> str:
             border-radius: 10px;
             font-size: 15px;
             font-weight: 700;
+        }
+        QPushButton[role="danger"]:hover {
+            background: $function_hover;
+        }
+        QPushButton[role="danger"]:pressed {
+            background: $raised;
         }
         QPushButton[role="clear"] {
             background: $clear;
@@ -588,6 +700,9 @@ def build_stylesheet(theme_name: str) -> str:
         QPushButton[role="clear"]:hover {
             background: $clear_hover;
         }
+        QPushButton[role="clear"]:pressed {
+            background: $clear;
+        }
         QPushButton[role="mode"] {
             background: $mode;
             color: $text;
@@ -595,6 +710,12 @@ def build_stylesheet(theme_name: str) -> str:
             border-radius: 10px;
             font-size: 15px;
             font-weight: 700;
+        }
+        QPushButton[role="mode"]:hover {
+            background: $button_hover;
+        }
+        QPushButton[role="mode"]:pressed {
+            background: $raised;
         }
         QPushButton[role="equal"] {
             background: $accent;
@@ -606,6 +727,84 @@ def build_stylesheet(theme_name: str) -> str:
         }
         QPushButton[role="equal"]:hover {
             background: $accent_hover;
+        }
+        QPushButton[role="equal"]:pressed {
+            background: $accent;
+        }
+        QFrame#mainPanel[scientific="true"] QPushButton[scientificGroup="mode"] {
+            background: $mode;
+            border-color: $mode_border;
+        }
+        QFrame#mainPanel[scientific="true"] QPushButton[scientificGroup="memory"][role="memory"] {
+            background: $memory;
+            border-color: $memory_border;
+            color: $soft_text;
+        }
+        QFrame#mainPanel[scientific="true"] QPushButton[scientificGroup="power"][role="function"] {
+            background: $function;
+            border-color: $function_border;
+        }
+        QFrame#mainPanel[scientific="true"] QPushButton[scientificGroup="trig"][role="function"] {
+            background: $button;
+            border-color: $button_border;
+        }
+        QFrame#mainPanel[scientific="true"] QPushButton[scientificGroup="complex"][role="function"] {
+            background: $memory;
+            border-color: $memory_border;
+        }
+        QFrame#mainPanel[scientific="true"] QPushButton[scientificGroup="keypad"][role="number"] {
+            background: $number;
+            border-color: $number_border;
+        }
+        QFrame#mainPanel[scientific="true"] QPushButton[scientificGroup="keypad"][primaryOperator="true"],
+        QFrame#mainPanel[scientific="true"] QPushButton[scientificGroup="keypad"][role="equal"] {
+            background: $accent;
+            color: $accent_text;
+            border-color: $accent_border;
+        }
+        QFrame#mainPanel[scientific="true"] QPushButton[role="clear"] {
+            background: $clear;
+            color: #ffffff;
+            border-color: $clear_border;
+        }
+        QFrame#mainPanel[scientific="true"] QPushButton[role="danger"] {
+            background: $danger_soft;
+            color: $text;
+            border-color: $danger_soft_border;
+        }
+        QFrame#mainPanel[scientific="true"] QPushButton[role="operator"] {
+            background: $function;
+            color: $text;
+            border-color: $function_border;
+        }
+        QFrame#mainPanel[scientific="true"] QPushButton[role="operator"][primaryOperator="true"],
+        QFrame#mainPanel[scientific="true"] QPushButton[role="equal"] {
+            background: $accent;
+            color: $accent_text;
+            border-color: $accent_border;
+        }
+        QPushButton:focus, QComboBox:focus, QCheckBox:focus, QTabBar::tab:focus,
+        QListWidget:focus, QTextBrowser:focus {
+            border: 2px solid $focus;
+        }
+        QPushButton:disabled, QComboBox:disabled, QCheckBox:disabled,
+        QTextEdit:disabled, QPlainTextEdit:disabled {
+            color: $muted;
+            background: $status_bg;
+            border-color: $border;
+        }
+        QFrame#mainPanel[compact="true"] QLabel#titleLabel {
+            font-size: 20px;
+        }
+        QFrame#mainPanel[compact="true"] QLabel[chip="true"] {
+            min-height: 24px;
+            padding: 4px 8px;
+        }
+        QFrame#mainPanel[compact="true"] QPushButton#modeSegmentButton,
+        QFrame#mainPanel[compact="true"] QPushButton#utilityButton,
+        QFrame#mainPanel[compact="true"] QPushButton#assistantToggleButton {
+            min-height: 34px;
+            padding: 6px 9px;
         }
         QPushButton[basicSymbol="true"] {
             font-size: 24px;

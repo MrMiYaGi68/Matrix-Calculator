@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.5.0 - 2026-06-21
+
+- Modernized the basic calculator layout while keeping the number pad and
+  operator column predictable.
+- Added semantic visual grouping to the scientific layout without hiding any
+  functions.
+- Unified button hover, pressed, selected, focus and disabled states across
+  Graphite, Matrix, Light and High Contrast themes.
+- Added localized settings tabs, theme labels and concrete dialog actions for
+  German, English, Spanish, French, Italian and Turkish.
+- Improved assistant empty states, calculation context and typographic
+  hierarchy.
+- Made settings, history, skills and embedded ChatGPT dialogs adapt to the
+  available desktop geometry.
+- Expanded UI smoke coverage for all themes, scientific mode and installed
+  build regressions.
+
 ## 1.0.2 - 2026-06-20
 
 - Improved the calculator UI hierarchy for compact and expanded assistant use.

@@ -28,15 +28,16 @@
   <screenshots>
     <screenshot type="default">
       <image>https://raw.githubusercontent.com/MrMiYaGi68/Matrix-Calculator/main/docs/screenshots/matrix-calculator-graphite.png</image>
-      <caption>Graphite theme with calculator and assistant side by side</caption>
+      <caption>Version 1.5.0 Graphite theme with calculator and local assistant</caption>
     </screenshot>
     <screenshot>
       <image>https://raw.githubusercontent.com/MrMiYaGi68/Matrix-Calculator/main/docs/screenshots/matrix-calculator-green.png</image>
-      <caption>Alternative green theme with the assistant answer panel open</caption>
+      <caption>Version 1.5.0 Matrix theme with calculator and assistant examples</caption>
     </screenshot>
   </screenshots>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="1.5.0" date="2026-06-21"/>
     <release version="1.0.2" date="2026-06-20"/>
     <release version="1.0.1" date="2026-04-29"/>
     <release version="1.0.0" date="2026-04-27"/>

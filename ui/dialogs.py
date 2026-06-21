@@ -10,6 +10,7 @@ from core.i18n import LANGUAGES, language_label, normalize_language, tr
 from PySide6.QtCore import QUrl
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
+    QApplication,
     QCheckBox,
     QComboBox,
     QDialog,
@@ -35,14 +36,41 @@ except ImportError:
     QWebEngineView = None
 
 
+def fit_dialog_to_screen(
+    dialog: QDialog,
+    *,
+    preferred_size: tuple[int, int],
+    minimum_size: tuple[int, int],
+) -> None:
+    screen = dialog.screen() or QApplication.primaryScreen()
+    if screen is None:
+        dialog.setMinimumSize(*minimum_size)
+        dialog.resize(*preferred_size)
+        return
+    available = screen.availableGeometry()
+    max_width = max(360, available.width() - 48)
+    max_height = max(360, available.height() - 64)
+    dialog.setMinimumSize(
+        min(minimum_size[0], max_width),
+        min(minimum_size[1], max_height),
+    )
+    dialog.resize(
+        min(preferred_size[0], max_width),
+        min(preferred_size[1], max_height),
+    )
+
+
 class AssistantSettingsDialog(QDialog):
     def __init__(self, parent: QWidget | None = None, language: str = "de") -> None:
         super().__init__(parent)
         self.language = normalize_language(language)
         self.setWindowTitle(tr(self.language, "settings_title"))
         self.setModal(True)
-        self.setMinimumSize(620, 620)
-        self.resize(760, 720)
+        fit_dialog_to_screen(
+            self,
+            preferred_size=(760, 720),
+            minimum_size=(520, 480),
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(18, 18, 18, 18)
@@ -57,7 +85,7 @@ class AssistantSettingsDialog(QDialog):
         layout.addWidget(self.tabs, 1)
 
         general_tab, general_layout = self._create_tab_page()
-        self.tabs.addTab(general_tab, "Allgemein" if self.language == "de" else "General")
+        self.tabs.addTab(general_tab, tr(self.language, "settings_tab_general"))
 
         language_label_widget = QLabel(tr(self.language, "language"))
         language_label_widget.setObjectName("settingsLabel")
@@ -70,13 +98,19 @@ class AssistantSettingsDialog(QDialog):
         self.language_select.setCurrentText(language_label(self.language))
         general_layout.addWidget(self.language_select)
 
-        theme_label = QLabel("Darstellung" if self.language == "de" else "Theme")
+        theme_label = QLabel(tr(self.language, "theme_label"))
         theme_label.setObjectName("settingsLabel")
         general_layout.addWidget(theme_label)
 
         self.theme_select = QComboBox()
         self.theme_select.setObjectName("themeSelect")
-        self.theme_select.addItems(["Graphite", "Matrix", "High Contrast", "Light"])
+        for label_key, theme_value in (
+            ("theme_graphite", "graphite"),
+            ("theme_matrix", "matrix"),
+            ("theme_high_contrast", "high contrast"),
+            ("theme_light", "light"),
+        ):
+            self.theme_select.addItem(tr(self.language, label_key), theme_value)
         general_layout.addWidget(self.theme_select)
 
         mode_label = QLabel(tr(self.language, "answer_mode"))
@@ -100,7 +134,7 @@ class AssistantSettingsDialog(QDialog):
         general_layout.addStretch()
 
         options_tab, options_layout = self._create_tab_page()
-        self.tabs.addTab(options_tab, "Optionen" if self.language == "de" else "Options")
+        self.tabs.addTab(options_tab, tr(self.language, "settings_tab_options"))
 
         self.step_checkbox = QCheckBox(tr(self.language, "step_by_step"))
         self.step_checkbox.setObjectName("stepCheck")
@@ -112,7 +146,7 @@ class AssistantSettingsDialog(QDialog):
         options_layout.addStretch()
 
         api_tab, api_layout = self._create_tab_page()
-        self.tabs.addTab(api_tab, "OpenAI API")
+        self.tabs.addTab(api_tab, tr(self.language, "settings_tab_api"))
 
         self.api_button_grid = QGridLayout()
         self.api_button_grid.setContentsMargins(0, 0, 0, 0)
@@ -154,7 +188,7 @@ class AssistantSettingsDialog(QDialog):
         api_layout.addStretch()
 
         about_tab, about_layout = self._create_tab_page()
-        self.tabs.addTab(about_tab, "Über" if self.language == "de" else "About")
+        self.tabs.addTab(about_tab, tr(self.language, "settings_tab_about"))
 
         self.about_browser = QTextBrowser()
         self.about_browser.setObjectName("aboutBrowser")
@@ -178,12 +212,12 @@ class AssistantSettingsDialog(QDialog):
         self.about_button_grid.setColumnStretch(1, 1)
         about_layout.addLayout(self.about_button_grid)
 
-        self.check_updates_button = QPushButton("Auf Updates prüfen" if self.language == "de" else "Check for updates")
+        self.check_updates_button = QPushButton(tr(self.language, "check_updates"))
         self.check_updates_button.setObjectName("ghostButton")
         self.check_updates_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.about_button_grid.addWidget(self.check_updates_button, 0, 0)
 
-        self.readme_button = QPushButton("README.md öffnen" if self.language == "de" else "Open README.md")
+        self.readme_button = QPushButton(tr(self.language, "open_readme"))
         self.readme_button.setObjectName("ghostButton")
         self.readme_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.about_button_grid.addWidget(self.readme_button, 0, 1)
@@ -205,12 +239,14 @@ class AssistantSettingsDialog(QDialog):
         ok_button = buttons.button(QDialogButtonBox.Ok)
         cancel_button = buttons.button(QDialogButtonBox.Cancel)
         if ok_button is not None:
+            ok_button.setText(tr(self.language, "save_changes"))
             ok_button.setObjectName("primaryButton")
             ok_button.setAutoDefault(False)
             ok_button.setDefault(False)
             ok_button.setMinimumWidth(136)
             ok_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         if cancel_button is not None:
+            cancel_button.setText(tr(self.language, "cancel"))
             cancel_button.setObjectName("ghostButton")
             cancel_button.setAutoDefault(False)
             cancel_button.setDefault(False)
@@ -230,8 +266,11 @@ class HistoryDialog(QDialog):
         super().__init__(parent)
         self.language = normalize_language(language)
         self.setWindowTitle(tr(self.language, "history"))
-        self.setMinimumSize(500, 500)
-        self.resize(520, 560)
+        fit_dialog_to_screen(
+            self,
+            preferred_size=(520, 560),
+            minimum_size=(420, 420),
+        )
         self.setModal(False)
 
         layout = QVBoxLayout(self)
@@ -271,8 +310,11 @@ class SkillsDialog(QDialog):
         super().__init__(parent)
         self.language = normalize_language(language)
         self.setWindowTitle(tr(self.language, "skills_title"))
-        self.setMinimumSize(680, 620)
-        self.resize(760, 720)
+        fit_dialog_to_screen(
+            self,
+            preferred_size=(760, 720),
+            minimum_size=(520, 460),
+        )
         self.setModal(False)
 
         layout = QVBoxLayout(self)
@@ -303,8 +345,11 @@ class ChatGPTWebDialog(QDialog):
         super().__init__(parent)
         self.language = normalize_language(language)
         self.setWindowTitle("ChatGPT Web")
-        self.setMinimumSize(900, 680)
-        self.resize(1080, 820)
+        fit_dialog_to_screen(
+            self,
+            preferred_size=(1080, 820),
+            minimum_size=(640, 480),
+        )
         self.setModal(False)
 
         layout = QVBoxLayout(self)

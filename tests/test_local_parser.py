@@ -739,7 +739,18 @@ class LocalParserTest(unittest.TestCase):
         )
         self.assertIn("Aufgabe erkannt", html_body)
         self.assertIn("First compute the percentage.", html_body)
-        self.assertIn("text-transform:uppercase", html_body)
+        self.assertNotIn("text-transform:uppercase", html_body)
+        self.assertIn("font-size:24px", html_body)
+
+    def test_format_ai_message_html_emphasizes_localized_result_labels(self):
+        for label in ("Ergebnis", "Result", "Resultado", "Résultat", "Risultato", "Sonuç"):
+            with self.subTest(label=label):
+                html_body = self.module.MatrixCalculatorWindow._format_ai_message_html(
+                    self.window,
+                    "assistant",
+                    f"{label}: 42",
+                )
+                self.assertIn("font-size:24px", html_body)
 
     def test_export_history_updates_history_dialog_label(self):
         with tempfile.TemporaryDirectory() as tmpdir:

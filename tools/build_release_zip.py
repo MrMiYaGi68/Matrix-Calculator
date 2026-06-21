@@ -14,10 +14,14 @@ DEFAULT_EXCLUDED_DIRS = {
     ".ruff_cache",
     ".venv",
     "__pycache__",
+    "build",
+    "dist",
 }
 DEFAULT_EXCLUDED_SUFFIXES = {
+    ".gz",
     ".pyc",
     ".pyo",
+    ".whl",
     ".zip",
 }
 
@@ -25,6 +29,8 @@ DEFAULT_EXCLUDED_SUFFIXES = {
 def should_include(path: Path, root: Path) -> bool:
     relative = path.relative_to(root)
     if any(part in DEFAULT_EXCLUDED_DIRS for part in relative.parts):
+        return False
+    if any(part.endswith(".egg-info") for part in relative.parts):
         return False
     if path.suffix in DEFAULT_EXCLUDED_SUFFIXES:
         return False

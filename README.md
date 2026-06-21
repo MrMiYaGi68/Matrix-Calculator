@@ -6,8 +6,9 @@ Ein wissenschaftlicher Taschenrechner in Python fuer Linux mit moderner `PySide6
 
 - Grundrechenarten, Klammern und Potenzen
 - Moderne `PySide6`-UI mit grossem Display, Seitenpanel und klarer Farbcodierung
-- Neues Splitter-/Karten-Layout fuer bessere Lesbarkeit auch ohne Vollbild
+- Adaptives Splitter-Layout fuer kompakte Nutzung und aufgeklappten Assistenten
 - Startet standardmaessig im `Basic`-Layout, mit umschaltbarem `Scientific`-Modus
+- Wissenschaftsmodus mit sichtbaren Funktionsgruppen, ohne Funktionen auszublenden
 - Trigonometrie mit `Deg`/`Rad`
 - `2nd`-Umschaltung fuer inverse und alternative Funktionen
 - `ln`, `log`, `e^x`, `10^x`, `sqrt`, `cbrt`, `1/x`, `abs`, Fakultaet und Prozent
@@ -29,6 +30,7 @@ Ein wissenschaftlicher Taschenrechner in Python fuer Linux mit moderner `PySide6
 - Prozenttaste mit typischer Taschenrechner-Logik, z. B. `200 + 10 %` => `200 + 20`
 - Optionale OpenAI-Anbindung fuer frei formulierte Rechenfragen per API-Key
 - Tastatursteuerung fuer Zahlen, Operatoren, `Enter`, `Backspace`, `Delete`, `Escape`
+- Vier konsistente Themes: Graphit, Matrix, Hell und Hoher Kontrast
 
 ## Start
 

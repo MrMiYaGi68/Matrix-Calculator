@@ -97,6 +97,7 @@ from ui.history_actions import (
     open_history_dialog,
     open_skills_dialog,
 )
+from ui.icons import apply_window_icons
 from ui.window_state import (
     available_content_window_width,
     collapsed_content_width,
@@ -117,10 +118,15 @@ from ui.window_state import (
 from ui.window_builders import build_assistant_panel_content, build_auxiliary_dialogs, build_left_panel_content
 from ui.button_config import (
     ADVANCED_ROWS,
+    BASIC_HIDDEN_BUTTONS,
+    BASIC_BUTTON_POSITIONS,
+    BASIC_VISIBLE_ADVANCED_BUTTONS,
+    BUTTON_ROWS,
     DEFAULT_THEME,
     SECOND_MODE_LABELS,
     button_shortcut_hint,
     button_tooltip_key,
+    scientific_button_position,
 )
 from ui.dialogs import AssistantSettingsDialog, ChatGPTWebDialog, HistoryDialog, SkillsDialog
 from ui.assistant_rendering import format_ai_message_html, format_rich_text_block, render_ai_chat_html
@@ -278,6 +284,7 @@ class MatrixCalculatorWindow(QMainWindow):
     def _apply_styles(self) -> None:
         self.setStyleSheet(build_stylesheet(self.theme_name))
         self._refresh_chip_styles()
+        apply_window_icons(self)
 
     def _theme_palette(self) -> dict[str, str]:
         return theme_palette(getattr(self, "theme_name", DEFAULT_THEME))
@@ -320,6 +327,56 @@ class MatrixCalculatorWindow(QMainWindow):
         self.ai_live_preview.setText(text)
         self._set_visual_state(self.ai_live_preview, state)
 
+    def _refresh_assistant_context(self) -> None:
+        if not hasattr(self, "assistant_context"):
+            return
+        expression = self._pretty_expression(self.expression).strip()
+        result = self.result_label.text().strip() if hasattr(self, "result_label") else "0"
+        value = f"{expression} = {result}" if expression else result
+        self.assistant_context.setText(f"{self._tr('current_calculation')}: {value}")
+        self._refresh_assistant_examples()
+
+    def _assistant_example_items(self) -> list[tuple[str, str]]:
+        english_query = getattr(self, "app_language", "de") != "de"
+        fixed = [
+            (self._tr("assistant_example_percent"), "20% of 450" if english_query else "20% von 450"),
+            (self._tr("assistant_example_root"), "sqrt(100)"),
+            (
+                self._tr("assistant_example_travel"),
+                "How long for 600 km at 50 km/h?" if english_query else "Wie lange für 600 km bei 50 km/h?",
+            ),
+        ]
+        if not self.expression.strip():
+            return fixed
+        pretty = self._pretty_expression(self.expression)
+        current = (
+            self._tr("assistant_example_current").format(expression=pretty),
+            self.expression,
+        )
+        return [current, fixed[0], fixed[2]]
+
+    def _refresh_assistant_examples(self) -> None:
+        if not hasattr(self, "assistant_examples"):
+            return
+        empty = not self.ai_messages
+        self.assistant_examples.setVisible(empty)
+        self.ai_result.setVisible(not empty)
+        if not empty:
+            return
+        self.assistant_examples_label.setText(self._tr("assistant_examples_title"))
+        for button, (label, query) in zip(self.assistant_example_buttons, self._assistant_example_items()):
+            button.setText(label)
+            button.setProperty("query", query)
+            button.setToolTip(self._tr("assistant_example_tooltip"))
+
+    def _run_assistant_example(self, query: str) -> None:
+        if not query.strip():
+            return
+        self.ai_input.setText(query)
+        self.ai_input.setCursorPosition(len(query))
+        self._update_ai_live_preview(query)
+        self._solve_natural_query()
+
     def _button_role(self, label: str) -> str:
         if label == "AC":
             return "clear"
@@ -356,22 +413,91 @@ class MatrixCalculatorWindow(QMainWindow):
             label.setStyleSheet(f"background:{bg}; color:{fg};")
 
     def _refresh_mode_labels(self) -> None:
-        for base, button in self.toggle_buttons.items():
-            label = self.second_pairs[base] if self.second_mode else base
-            button.setText(label)
-        self.mode_toggle_button.setText("Deg" if self.degrees else "Rad")
         self.mode_chip.setText("DEG" if self.degrees else "RAD")
         self.memory_chip.setText(f"M {self._format_number(self.memory)}")
         self.memory_chip.setVisible(abs(self.memory) > 1e-12)
+        self._refresh_button_labels()
         self._refresh_basic_symbol_buttons()
 
+    def _refresh_button_labels(self) -> None:
+        basic_labels = {
+            "mod": self._tr("button_remainder"),
+            "CE": self._tr("button_clear_entry"),
+            "Ans": self._tr("button_answer"),
+            "sqrt": "√",
+            "cbrt": "∛",
+        }
+        for button in getattr(self, "all_calc_buttons", []):
+            base_label = button.property("baseLabel") or button.text()
+            if base_label == "⌫":
+                continue
+            if not self.scientific_mode:
+                button.setText(basic_labels.get(base_label, base_label))
+            elif base_label == "Deg":
+                button.setText("Deg" if self.degrees else "Rad")
+            elif base_label in self.second_pairs:
+                button.setText(self.second_pairs[base_label] if self.second_mode else base_label)
+            else:
+                button.setText(base_label)
+
     def _refresh_layout_mode(self) -> None:
-        for row_index, widgets in self.row_groups.items():
+        for button in getattr(self, "all_calc_buttons", []):
+            source_row = int(button.property("sourceRow"))
+            source_column = int(button.property("sourceColumn"))
+            base_label = button.property("baseLabel") or button.text()
+            if self.scientific_mode:
+                target_row, target_column, span = scientific_button_position(
+                    source_row,
+                    source_column,
+                    base_label,
+                )
+            else:
+                target_row, target_column, span = BASIC_BUTTON_POSITIONS.get(
+                    (source_row, source_column),
+                    scientific_button_position(source_row, source_column, base_label),
+                )
+            self.controls_grid.addWidget(button, target_row, target_column, 1, span)
+
+        for row_index in range(len(BUTTON_ROWS)):
             visible = self.scientific_mode or row_index not in self.advanced_rows
-            if hasattr(self, "controls_grid"):
-                self.controls_grid.setRowStretch(row_index, 1 if visible else 0)
+            self.controls_grid.setRowStretch(row_index, 1 if visible else 0)
+        if hasattr(self, "basic_group_separator"):
+            self.basic_group_separator.setVisible(not self.scientific_mode)
+            self.controls_grid.setRowMinimumHeight(4, 0 if self.scientific_mode else 1)
+
+        for row_index, widgets in self.row_groups.items():
             for widget in widgets:
+                base_label = widget.property("baseLabel") or widget.text()
+                visible = (
+                    self.scientific_mode
+                    or (
+                        base_label not in BASIC_HIDDEN_BUTTONS
+                        and (
+                            row_index not in self.advanced_rows
+                            or base_label in BASIC_VISIBLE_ADVANCED_BUTTONS
+                        )
+                    )
+                )
                 widget.setVisible(visible)
+                source_row = int(widget.property("sourceRow"))
+                source_column = int(widget.property("sourceColumn"))
+                target_row, target_column, _ = (
+                    scientific_button_position(source_row, source_column, base_label)
+                    if self.scientific_mode
+                    else BASIC_BUTTON_POSITIONS.get(
+                        (source_row, source_column),
+                        scientific_button_position(source_row, source_column, base_label),
+                    )
+                )
+                basic_group = ""
+                if not self.scientific_mode and target_row == 1:
+                    basic_group = "entry"
+                elif not self.scientific_mode and target_column < 3:
+                    basic_group = "function"
+                if widget.property("basicGroup") != basic_group:
+                    widget.setProperty("basicGroup", basic_group)
+                    widget.style().unpolish(widget)
+                    widget.style().polish(widget)
                 if isinstance(widget, CalcButton):
                     if self.scientific_mode:
                         widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -388,12 +514,17 @@ class MatrixCalculatorWindow(QMainWindow):
             self.controls_grid.setVerticalSpacing(grid_spacing)
             self.controls_grid.setContentsMargins(outer_margin, outer_margin, outer_margin, outer_margin)
             self.controls_layout.setAlignment(Qt.Alignment() if self.scientific_mode else Qt.AlignCenter)
+        if hasattr(self, "left_panel"):
+            self.left_panel.setProperty("scientific", self.scientific_mode)
+            self.left_panel.style().unpolish(self.left_panel)
+            self.left_panel.style().polish(self.left_panel)
         if hasattr(self, "basic_mode_button"):
             self.basic_mode_button.setText(self._tr("basic_layout"))
             self.basic_mode_button.setChecked(not self.scientific_mode)
         if hasattr(self, "scientific_mode_button"):
             self.scientific_mode_button.setText(self._tr("scientific_layout"))
             self.scientific_mode_button.setChecked(self.scientific_mode)
+        self._refresh_button_labels()
         self._refresh_basic_symbol_buttons()
 
     def _refresh_basic_symbol_buttons(self) -> None:
@@ -430,6 +561,7 @@ class MatrixCalculatorWindow(QMainWindow):
         if hasattr(self, "scientific_mode_button"):
             self.scientific_mode_button.setText(self._tr("scientific_layout"))
         self.ai_title.setText(self._tr("assistant_title_html"))
+        self._refresh_assistant_context()
         self.ai_input.setPlaceholderText(self._tr("query_placeholder"))
         self.ai_result.setPlaceholderText(self._tr("assistant_output_placeholder"))
         self.solve_button.setText(self._tr("calculate"))
@@ -529,7 +661,19 @@ class MatrixCalculatorWindow(QMainWindow):
 
     def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
+        self._refresh_density_state()
         self._refresh_ai_toggle_button()
+
+    def _refresh_density_state(self) -> None:
+        if not hasattr(self, "left_panel"):
+            return
+        compact = self.ai_panel_visible and self.left_panel.width() < 640
+        if self.left_panel.property("compact") == compact:
+            return
+        self.left_panel.setProperty("compact", compact)
+        self.subtitle_label.setVisible(not compact)
+        self.left_panel.style().unpolish(self.left_panel)
+        self.left_panel.style().polish(self.left_panel)
 
     def _current_screen_available_geometry(self):
         return current_screen_available_geometry(self)
@@ -563,6 +707,7 @@ class MatrixCalculatorWindow(QMainWindow):
 
     def _update_display(self) -> None:
         update_display(self)
+        self._refresh_assistant_context()
 
     def _balanced_expression(self, text: str) -> str:
         return balanced_expression(text)
@@ -885,7 +1030,7 @@ class MatrixCalculatorWindow(QMainWindow):
     def _apply_settings_dialog(self, dialog: AssistantSettingsDialog) -> None:
         selected_language = dialog.language_select.currentData()
         self.app_language = normalize_language(selected_language)
-        self.theme_name = dialog.theme_select.currentText().strip().lower() or DEFAULT_THEME
+        self.theme_name = dialog.theme_select.currentData() or DEFAULT_THEME
         self._apply_styles()
         self._render_ai_chat()
         self.assistant_mode = self._normalize_assistant_mode(dialog.mode_select.currentText())
@@ -1017,11 +1162,15 @@ class MatrixCalculatorWindow(QMainWindow):
 
     def _clear_ai_chat(self) -> None:
         self.ai_messages.clear()
-        self.ai_result.clear()
+        self._render_ai_chat()
         self._set_ai_status(self._tr("ai_history_cleared"), "neutral")
 
     def _render_ai_chat(self) -> None:
         if not hasattr(self, "ai_result") or not hasattr(self.ai_result, "setHtml"):
+            return
+        self._refresh_assistant_examples()
+        if not self.ai_messages:
+            self.ai_result.clear()
             return
         colors = self._theme_palette()
         labels = {

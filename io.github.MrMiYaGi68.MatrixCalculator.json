@@ -26,8 +26,8 @@
       "sources": [
         {
           "type": "archive",
-          "url": "https://github.com/MrMiYaGi68/Matrix-Calculator/releases/download/v1.0.2/matrix_calculator-1.0.2.tar.gz",
-          "sha256": "eafc9d418e6e9b0bde120a1ab2d1b90a09ab5948cf4e85b19243bd2629c0b1d1"
+          "url": "https://github.com/MrMiYaGi68/Matrix-Calculator/releases/download/v1.5.0/matrix_calculator-1.5.0.tar.gz",
+          "sha256": "8f44487fc63cb7aed1ea12672489af88958bf19ee2b0059ec122a46f0f5a5a1c"
         }
       ]
     }
