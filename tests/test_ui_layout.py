@@ -193,7 +193,7 @@ class UiLayoutTest(unittest.TestCase):
             for button in window.all_calc_buttons
             if button.isVisible()
         }
-        self.assertEqual(visible_labels["mod"], window._tr("button_remainder"))
+        self.assertEqual(visible_labels["mod"], "mod")
         self.assertNotIn("CE", visible_labels)
         self.assertNotIn("Ans", visible_labels)
         self.assertEqual(visible_labels["π"], "π")
@@ -224,6 +224,9 @@ class UiLayoutTest(unittest.TestCase):
         self.assertEqual(groups["sin"], "trig")
         self.assertEqual(groups["Re"], "complex")
         self.assertEqual(groups["7"], "keypad")
+        self.assertFalse(window.subtitle_label.isVisible())
+        self.assertEqual(window.controls_grid.verticalSpacing(), 8)
+        self.assertEqual(window.controls_layout.contentsMargins().bottom(), 6)
 
     def test_assistant_panel_groups_query_controls_and_uses_plain_calculate_action(self):
         window = self._make_window(1400, open_ai=True)
@@ -232,6 +235,7 @@ class UiLayoutTest(unittest.TestCase):
         self.assertEqual(window.ai_live_preview.parentWidget(), window.assistant_query_panel)
         self.assertEqual(window.solve_button.text(), window._tr("calculate"))
         self.assertTrue(window.solve_button.icon().isNull())
+        self.assertLessEqual(window.ai_input.maximumHeight(), 150)
         self.assertEqual(window.assistant_context.objectName(), "assistantContext")
         self.assertIn(window._tr("current_calculation"), window.assistant_context.text())
         self.assertEqual(window.settings_button.objectName(), "utilityButton")
@@ -310,6 +314,7 @@ class UiLayoutTest(unittest.TestCase):
         self.assertIn('QPushButton#assistantToggleButton[assistantVisible="true"]', stylesheet)
         self.assertIn('QPushButton#assistantToggleButton[assistantVisible="true"]:hover', stylesheet)
         self.assertIn("QPushButton#assistantToggleButton:pressed", stylesheet)
+        self.assertIn('QPushButton[role="mode"][modeActive="true"]', stylesheet)
 
     def test_button_families_define_hover_and_pressed_feedback(self):
         stylesheet = self._make_window().styleSheet()
@@ -361,6 +366,23 @@ class UiLayoutTest(unittest.TestCase):
         window.left_panel.resize(700, window.left_panel.height())
         window._refresh_density_state()
         self.assertFalse(window.left_panel.property("compact"))
+        self.assertTrue(window.subtitle_label.isVisible())
+
+    def test_scientific_density_is_distinct_from_ai_compact_density(self):
+        window = self._make_window()
+
+        self.assertFalse(window.left_panel.property("compact"))
+        window.scientific_mode_button.click()
+        self.app.processEvents()
+
+        self.assertFalse(window.left_panel.property("compact"))
+        self.assertTrue(window.left_panel.property("scientificDense"))
+        self.assertFalse(window.subtitle_label.isVisible())
+
+        window.basic_mode_button.click()
+        self.app.processEvents()
+
+        self.assertFalse(window.left_panel.property("scientificDense"))
         self.assertTrue(window.subtitle_label.isVisible())
 
     def test_top_bar_distinguishes_secondary_history_from_ai_toggle(self):

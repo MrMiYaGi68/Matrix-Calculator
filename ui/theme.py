@@ -273,6 +273,9 @@ def build_stylesheet(theme_name: str) -> str:
             border: 1px solid $display_border;
             border-radius: 12px;
         }
+        QFrame#displayPanel[scientific="true"] {
+            border-radius: 10px;
+        }
         QFrame#assistantPanel, QFrame#historyPanel {
             background: $assistant;
             border: 1px solid $strong_border;
@@ -392,12 +395,12 @@ def build_stylesheet(theme_name: str) -> str:
             background: $raised;
         }
         QPushButton#modeSegmentButton:checked {
-            background: $mode;
+            background: $input_focus;
             color: $text;
-            border: 2px solid $mode_border;
+            border: 2px solid $focus;
         }
         QPushButton#modeSegmentButton:checked:hover {
-            background: $button_hover;
+            background: $input_focus;
         }
         QPushButton#ghostButton, QPushButton#toolButton, QPushButton#utilityButton {
             background: $button;
@@ -441,12 +444,12 @@ def build_stylesheet(theme_name: str) -> str:
             background: $raised;
         }
         QPushButton#assistantToggleButton[assistantVisible="true"] {
-            background: $mode;
+            background: $input_focus;
             color: $text;
-            border: 2px solid $mode_border;
+            border: 2px solid $focus;
         }
         QPushButton#assistantToggleButton[assistantVisible="true"]:hover {
-            background: $button_hover;
+            background: $input_focus;
         }
         QPushButton#primaryButton, QPushButton#solveButton {
             background: $accent;
@@ -460,20 +463,22 @@ def build_stylesheet(theme_name: str) -> str:
             min-width: 120px;
         }
         QPushButton#solveButton {
-            background: $accent;
-            color: $accent_text;
-            border: 1px solid $accent_border;
-            font-size: 16px;
-            font-weight: 750;
+            background: $button;
+            color: $text;
+            border: 1px solid $button_border;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            min-height: 42px;
         }
         QPushButton#primaryButton:hover {
             background: $accent_hover;
         }
         QPushButton#solveButton:hover {
-            background: $accent_hover;
+            background: $button_hover;
         }
         QPushButton#primaryButton:pressed, QPushButton#solveButton:pressed {
-            background: $accent;
+            background: $raised;
         }
         QFrame#assistantQueryPanel {
             background: transparent;
@@ -486,9 +491,9 @@ def build_stylesheet(theme_name: str) -> str:
             border: 1px solid $button_border;
             border-radius: 10px;
             padding: 12px 14px;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 500;
-            min-height: 104px;
+            min-height: 92px;
         }
         QTextEdit#queryInput:focus, QPlainTextEdit#queryInput:focus {
             border: 2px solid $focus;
@@ -532,10 +537,10 @@ def build_stylesheet(theme_name: str) -> str:
             color: $soft_text;
             border: 1px solid $border;
             border-radius: 8px;
-            padding: 9px 12px;
+            padding: 7px 10px;
             text-align: left;
             font-size: 14px;
-            min-height: 38px;
+            min-height: 34px;
         }
         QPushButton#exampleButton:hover {
             background: $blue_bg;
@@ -717,6 +722,14 @@ def build_stylesheet(theme_name: str) -> str:
         QPushButton[role="mode"]:pressed {
             background: $raised;
         }
+        QPushButton[role="mode"][modeActive="true"] {
+            background: $input_focus;
+            color: $text;
+            border: 2px solid $focus;
+        }
+        QPushButton[role="mode"][modeActive="true"]:hover {
+            background: $input_focus;
+        }
         QPushButton[role="equal"] {
             background: $accent;
             color: $accent_text;
@@ -734,6 +747,10 @@ def build_stylesheet(theme_name: str) -> str:
         QFrame#mainPanel[scientific="true"] QPushButton[scientificGroup="mode"] {
             background: $mode;
             border-color: $mode_border;
+        }
+        QFrame#mainPanel[scientific="true"] QPushButton[scientificGroup="mode"][modeActive="true"] {
+            background: $input_focus;
+            border: 2px solid $focus;
         }
         QFrame#mainPanel[scientific="true"] QPushButton[scientificGroup="memory"][role="memory"] {
             background: $memory;

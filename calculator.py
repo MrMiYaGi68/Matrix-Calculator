@@ -421,7 +421,7 @@ class MatrixCalculatorWindow(QMainWindow):
 
     def _refresh_button_labels(self) -> None:
         basic_labels = {
-            "mod": self._tr("button_remainder"),
+            "mod": "mod",
             "CE": self._tr("button_clear_entry"),
             "Ans": self._tr("button_answer"),
             "sqrt": "√",
@@ -439,6 +439,14 @@ class MatrixCalculatorWindow(QMainWindow):
                 button.setText(self.second_pairs[base_label] if self.second_mode else base_label)
             else:
                 button.setText(base_label)
+            mode_active = (
+                (base_label == "2nd" and self.second_mode)
+                or (base_label == "Deg")
+            )
+            if button.property("modeActive") != mode_active:
+                button.setProperty("modeActive", mode_active)
+                button.style().unpolish(button)
+                button.style().polish(button)
 
     def _refresh_layout_mode(self) -> None:
         for button in getattr(self, "all_calc_buttons", []):
@@ -501,19 +509,31 @@ class MatrixCalculatorWindow(QMainWindow):
                 if isinstance(widget, CalcButton):
                     if self.scientific_mode:
                         widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-                        widget.setMinimumHeight(46)
+                        widget.setMinimumHeight(42)
                         widget.setMaximumHeight(16777215)
                     else:
                         widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
                         widget.setMinimumHeight(54)
                         widget.setMaximumHeight(16777215)
         if hasattr(self, "controls_grid") and hasattr(self, "controls_layout"):
-            grid_spacing = 10
-            outer_margin = 6 if self.scientific_mode else 0
+            grid_spacing = 8 if self.scientific_mode else 10
+            outer_margin = 2 if self.scientific_mode else 0
             self.controls_grid.setHorizontalSpacing(grid_spacing)
             self.controls_grid.setVerticalSpacing(grid_spacing)
             self.controls_grid.setContentsMargins(outer_margin, outer_margin, outer_margin, outer_margin)
+            self.controls_layout.setContentsMargins(0, 0, 0, 6 if self.scientific_mode else 0)
             self.controls_layout.setAlignment(Qt.Alignment() if self.scientific_mode else Qt.AlignCenter)
+        if hasattr(self, "display_layout"):
+            if self.scientific_mode:
+                self.display_layout.setContentsMargins(18, 12, 18, 12)
+                self.display_layout.setSpacing(3)
+            else:
+                self.display_layout.setContentsMargins(18, 16, 18, 16)
+                self.display_layout.setSpacing(5)
+        if hasattr(self, "display_panel"):
+            self.display_panel.setProperty("scientific", self.scientific_mode)
+            self.display_panel.style().unpolish(self.display_panel)
+            self.display_panel.style().polish(self.display_panel)
         if hasattr(self, "left_panel"):
             self.left_panel.setProperty("scientific", self.scientific_mode)
             self.left_panel.style().unpolish(self.left_panel)
@@ -542,6 +562,7 @@ class MatrixCalculatorWindow(QMainWindow):
         self.scientific_mode = scientific
         self._set_preview_state(self._tr("scientific_layout_active") if scientific else self._tr("basic_layout_active"), "info")
         self._refresh_layout_mode()
+        self._refresh_density_state()
 
     def _tr(self, key: str) -> str:
         return tr(getattr(self, "app_language", "de"), key)
@@ -668,10 +689,15 @@ class MatrixCalculatorWindow(QMainWindow):
         if not hasattr(self, "left_panel"):
             return
         compact = self.ai_panel_visible and self.left_panel.width() < 640
-        if self.left_panel.property("compact") == compact:
+        scientific_dense = self.scientific_mode and self.height() < 860
+        if (
+            self.left_panel.property("compact") == compact
+            and self.left_panel.property("scientificDense") == scientific_dense
+        ):
             return
         self.left_panel.setProperty("compact", compact)
-        self.subtitle_label.setVisible(not compact)
+        self.left_panel.setProperty("scientificDense", scientific_dense)
+        self.subtitle_label.setVisible(not compact and not scientific_dense)
         self.left_panel.style().unpolish(self.left_panel)
         self.left_panel.style().polish(self.left_panel)
 

@@ -113,9 +113,9 @@ def build_left_panel_content(window, left_layout, *, button_class) -> None:
 
     window.display_panel = QFrame()
     window.display_panel.setObjectName("displayPanel")
-    display_layout = QVBoxLayout(window.display_panel)
-    display_layout.setContentsMargins(18, 16, 18, 16)
-    display_layout.setSpacing(5)
+    window.display_layout = QVBoxLayout(window.display_panel)
+    window.display_layout.setContentsMargins(18, 16, 18, 16)
+    window.display_layout.setSpacing(5)
     left_layout.addWidget(window.display_panel)
 
     window.preview_label = QLabel("Bereit für Eingabe")
@@ -127,9 +127,9 @@ def build_left_panel_content(window, left_layout, *, button_class) -> None:
     window.result_label = QLabel("0")
     window.result_label.setObjectName("resultLabel")
     window.result_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-    display_layout.addWidget(window.preview_label)
-    display_layout.addWidget(window.expression_label)
-    display_layout.addWidget(window.result_label)
+    window.display_layout.addWidget(window.preview_label)
+    window.display_layout.addWidget(window.expression_label)
+    window.display_layout.addWidget(window.result_label)
 
     controls_wrap = QFrame()
     controls_wrap.setObjectName("controlsPanel")
@@ -184,6 +184,7 @@ def build_assistant_panel_content(window, right_layout) -> None:
     ai_scroll = QScrollArea()
     ai_scroll.setWidgetResizable(True)
     ai_scroll.setFrameShape(QFrame.NoFrame)
+    ai_scroll.setAlignment(Qt.AlignTop | Qt.AlignLeft)
     right_layout.addWidget(ai_scroll, 3)
 
     window.ai_panel = QFrame()
@@ -195,21 +196,25 @@ def build_assistant_panel_content(window, right_layout) -> None:
 
     window.ai_title = QLabel("Matrix <span style='color:#ff9f0a;'>KI</span> Assistent")
     window.ai_title.setObjectName("panelTitle")
+    window.ai_title.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
     ai_layout.addWidget(window.ai_title)
 
     window.ai_status = QLabel("Bereit. Lokaler Rechenmodus ist aktiv.")
     window.ai_status.setObjectName("statusBarLabel")
     window.ai_status.setWordWrap(True)
+    window.ai_status.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
     ai_layout.addWidget(window.ai_status)
 
     window.assistant_context = QLabel()
     window.assistant_context.setObjectName("assistantContext")
     window.assistant_context.setWordWrap(True)
+    window.assistant_context.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
     window.assistant_context.setTextInteractionFlags(Qt.TextSelectableByMouse)
     ai_layout.addWidget(window.assistant_context)
 
     window.assistant_query_panel = QFrame()
     window.assistant_query_panel.setObjectName("assistantQueryPanel")
+    window.assistant_query_panel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
     query_column = QVBoxLayout(window.assistant_query_panel)
     query_column.setContentsMargins(0, 0, 0, 0)
     query_column.setSpacing(8)
@@ -219,10 +224,12 @@ def build_assistant_panel_content(window, right_layout) -> None:
     window.ai_input.setObjectName("queryInput")
     window.ai_input.setPlaceholderText("Frage den Matrix KI Taschenrechner...")
     window.ai_input.setTabChangesFocus(False)
+    window.ai_input.setMinimumHeight(92)
+    window.ai_input.setMaximumHeight(150)
     window.ai_input.returnPressed.connect(window._solve_natural_query)
     window.ai_input.textChangedValue.connect(window._update_ai_live_preview)
     window.ai_input.installEventFilter(window)
-    query_column.addWidget(window.ai_input, 1)
+    query_column.addWidget(window.ai_input)
 
     window.solve_button = QPushButton("Berechnen")
     window.solve_button.setObjectName("solveButton")
@@ -237,6 +244,7 @@ def build_assistant_panel_content(window, right_layout) -> None:
 
     window.assistant_examples = QFrame()
     window.assistant_examples.setObjectName("assistantExamples")
+    window.assistant_examples.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
     examples_layout = QVBoxLayout(window.assistant_examples)
     examples_layout.setContentsMargins(0, 4, 0, 4)
     examples_layout.setSpacing(6)
