@@ -28,6 +28,20 @@ class NaturalQueryAlgebraTest(unittest.TestCase):
         self.assertEqual(result.expression, "(1/2)+(3/4)")
         self.assertEqual(result.answer, "1.25")
 
+    def test_solve_written_fraction_of_query(self):
+        cases = [
+            ("ein drittel von 90", "(1/3)*90", "30"),
+            ("2 drittel von 90", "(2/3)*90", "60"),
+            ("ein viertel von 80", "(1/4)*80", "20"),
+            ("die hälfte von 42", "(1/2)*42", "21"),
+        ]
+        for query, expression, answer in cases:
+            with self.subTest(query=query):
+                result = solve_fraction_query(query)
+                self.assertIsNotNone(result)
+                self.assertEqual(result.expression, expression)
+                self.assertEqual(result.answer, answer)
+
 
 if __name__ == "__main__":
     unittest.main()

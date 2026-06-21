@@ -7,6 +7,16 @@ from core.natural_query.common import format_local_result
 from core.natural_query.types import CLARIFICATION_EXPRESSION, NaturalQueryResult
 
 
+def _looks_like_year_only_tax_query(normalized: str, values: list[float]) -> bool:
+    if len(values) != 1:
+        return False
+    value = values[0]
+    if value < 1900 or value > 2100 or value != int(value):
+        return False
+    amount_context_terms = ["€", "euro", "netto", "brutto", "preis", "betrag", "kosten", "auf", "von", "bei"]
+    return not any(term in normalized for term in amount_context_terms)
+
+
 def parse_interest_query(normalized: str) -> tuple[float, float, float] | None:
     capital_match = re.search(r"(?P<capital>\d+(?:\.\d+)?)\s*(?:€|euro)", normalized)
     rate_match = re.search(
@@ -162,6 +172,12 @@ def solve_finance_query(normalized: str, values: list[float]) -> NaturalQueryRes
     if any(term in normalized for term in ["mehrwertsteuer", "mwst", "umsatzsteuer"]):
         if not values:
             return None
+        if _looks_like_year_only_tax_query(normalized, values):
+            return NaturalQueryResult(
+                CLARIFICATION_EXPRESSION,
+                "Ich erkenne eine Finanzaufgabe, aber nicht eindeutig genug.",
+                "Bitte nenne einen Nettobetrag, z. B. 'Mehrwertsteuer auf 100 Euro', oder formuliere die Steuerfrage genauer.",
+            )
         net = values[0]
         rate = values[1] if len(values) > 1 else 19
         if any(term in normalized for term in ["brutto", "inklusive", "mit mwst", "mit mehrwertsteuer"]):

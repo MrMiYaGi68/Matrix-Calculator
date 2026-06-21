@@ -32,7 +32,7 @@ from core.natural_query.physics import solve_physics_query
 from core.natural_query.response import build_local_answer
 from core.natural_query.relationships import solve_relationship_query
 from core.natural_query.simple_arithmetic import prepare_simple_expression, solve_simple_arithmetic
-from core.natural_query.statistics import solve_average_query, solve_distribution_query
+from core.natural_query.statistics import solve_average_query, solve_distribution_query, solve_summary_query
 from core.natural_query.types import CLARIFICATION_EXPRESSION, NaturalQueryResult
 from core.natural_query.units import solve_unit_conversion_query
 
@@ -72,6 +72,7 @@ __all__ = [
     "solve_relationship_query",
     "solve_school_finance_query",
     "solve_simple_arithmetic",
+    "solve_summary_query",
     "solve_unit_conversion_query",
     "translate_local_text",
     "unit_factor",

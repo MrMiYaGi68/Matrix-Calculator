@@ -19,6 +19,39 @@ def solve_average_query(normalized: str) -> NaturalQueryResult | None:
     return NaturalQueryResult(expression, answer, explanation)
 
 
+def solve_summary_query(normalized: str) -> NaturalQueryResult | None:
+    values = extract_numbers(normalized)
+    if not values:
+        return None
+    formatted = ",".join(format_number(value) for value in values)
+
+    if any(term in normalized for term in ["summe", "aufsummieren", "addiere alle", "total"]):
+        value = sum(values)
+        expression = f"sum({formatted})"
+        explanation = "Die Summe ist die Addition aller Werte."
+        return NaturalQueryResult(*format_local_result(expression, value, explanation))
+
+    if any(term in normalized for term in ["minimum", "kleinster wert", "kleinste zahl"]):
+        value = min(values)
+        expression = f"min({formatted})"
+        explanation = "Das Minimum ist der kleinste Wert der Liste."
+        return NaturalQueryResult(*format_local_result(expression, value, explanation))
+
+    if any(term in normalized for term in ["maximum", "größter wert", "groesster wert", "größte zahl", "groesste zahl"]):
+        value = max(values)
+        expression = f"max({formatted})"
+        explanation = "Das Maximum ist der größte Wert der Liste."
+        return NaturalQueryResult(*format_local_result(expression, value, explanation))
+
+    if any(term in normalized for term in ["spannweite", "range", "wertebereich"]):
+        value = max(values) - min(values)
+        expression = f"range({formatted})"
+        explanation = "Die Spannweite ist Maximum minus Minimum."
+        return NaturalQueryResult(*format_local_result(expression, value, explanation))
+
+    return None
+
+
 def solve_distribution_query(normalized: str) -> NaturalQueryResult | None:
     if any(term in normalized for term in ["median", "mittlerer wert", "mittlere wert"]):
         values = sorted(extract_numbers(normalized))

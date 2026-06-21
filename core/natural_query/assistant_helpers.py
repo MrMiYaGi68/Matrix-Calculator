@@ -17,13 +17,17 @@ from core.natural_query.elementary import solve_power_query, solve_root_query
 from core.natural_query.everyday import solve_recurring_amount_query, solve_rule_of_three_query
 from core.natural_query.finance import solve_finance_query, solve_interest_query, solve_school_finance_query
 from core.natural_query.geometry import solve_geometry_query, solve_pythagoras_query
+from core.natural_query.heuristic_intelligence import (
+    improve_query_heuristically,
+    solve_broad_heuristic_query,
+)
 from core.natural_query.language import is_english_query
 from core.natural_query.motion import solve_motion_query
 from core.natural_query.percent import solve_percent_change_query, solve_percent_query
 from core.natural_query.physics import solve_physics_query
 from core.natural_query.relationships import solve_relationship_query
 from core.natural_query.simple_arithmetic import solve_simple_arithmetic
-from core.natural_query.statistics import solve_average_query, solve_distribution_query
+from core.natural_query.statistics import solve_average_query, solve_distribution_query, solve_summary_query
 from core.natural_query.types import CLARIFICATION_EXPRESSION
 from core.natural_query.units import solve_unit_conversion_query
 
@@ -441,8 +445,13 @@ def solve_local_natural_query(
     normalized = normalized.replace(" übrig ", " ")
     normalized = normalized.replace("plus ", "plus ")
     normalized = re.sub(r"[?]", "", normalized)
+    normalized = improve_query_heuristically(normalized)
 
     school_values = extract_numbers(normalized)
+
+    heuristic_result = solve_broad_heuristic_query(normalized, school_values)
+    if heuristic_result is not None:
+        return heuristic_result.as_tuple()
 
     school_finance_result = solve_school_finance_query(normalized, school_values)
     if school_finance_result is not None:
@@ -463,6 +472,10 @@ def solve_local_natural_query(
     average_result = solve_average_query(normalized)
     if average_result is not None:
         return average_result.as_tuple()
+
+    summary_result = solve_summary_query(normalized)
+    if summary_result is not None:
+        return summary_result.as_tuple()
 
     interest_result = solve_interest_query(normalized)
     if interest_result is not None:

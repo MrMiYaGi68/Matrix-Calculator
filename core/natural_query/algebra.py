@@ -112,6 +112,10 @@ def solve_equation_query(normalized: str) -> NaturalQueryResult | None:
 
 
 def solve_fraction_query(normalized: str) -> NaturalQueryResult | None:
+    written_fraction = _solve_written_fraction_of_query(normalized)
+    if written_fraction is not None:
+        return written_fraction
+
     fraction_match = re.search(
         r"(?P<a>\d+)\s*/\s*(?P<b>\d+)\s*(?P<op>[+\-*/])\s*(?P<c>\d+)\s*/\s*(?P<d>\d+)",
         normalized,
@@ -137,4 +141,36 @@ def solve_fraction_query(normalized: str) -> NaturalQueryResult | None:
         return None
     expression = f"({format_number(a)}/{format_number(b)}){op}({format_number(c)}/{format_number(d)})"
     explanation = "Die Bruchrechnung wurde als Rechenoperation zwischen zwei Brüchen ausgewertet."
+    return NaturalQueryResult(*format_local_result(expression, value, explanation))
+
+
+def _solve_written_fraction_of_query(normalized: str) -> NaturalQueryResult | None:
+    denominator_words = {
+        "hälfte": 2,
+        "haelfte": 2,
+        "halb": 2,
+        "drittel": 3,
+        "viertel": 4,
+        "fünftel": 5,
+        "fuenftel": 5,
+        "sechstel": 6,
+        "siebtel": 7,
+        "achtel": 8,
+        "neuntel": 9,
+        "zehntel": 10,
+    }
+    denominator_pattern = "|".join(sorted((re.escape(key) for key in denominator_words), key=len, reverse=True))
+    match = re.search(
+        rf"(?:die\s+)?(?:(?P<numerator>ein|eine|\d+(?:\.\d+)?)\s+)?(?P<denominator>{denominator_pattern})\s+von\s+(?P<base>\d+(?:\.\d+)?)",
+        normalized,
+    )
+    if not match:
+        return None
+    numerator_text = match.group("numerator")
+    numerator = 1.0 if numerator_text in {None, "ein", "eine"} else float(numerator_text)
+    denominator = float(denominator_words[match.group("denominator")])
+    base = float(match.group("base"))
+    value = numerator / denominator * base
+    expression = f"({format_number(numerator)}/{format_number(denominator)})*{format_number(base)}"
+    explanation = "Der ausgeschriebene Bruchteil wird als Zähler ÷ Nenner × Grundwert berechnet."
     return NaturalQueryResult(*format_local_result(expression, value, explanation))

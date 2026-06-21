@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import unittest
 
-from core.natural_query.statistics import solve_average_query, solve_distribution_query
+from core.natural_query.statistics import solve_average_query, solve_distribution_query, solve_summary_query
 
 
 class NaturalQueryStatisticsTest(unittest.TestCase):
@@ -28,6 +28,25 @@ class NaturalQueryStatisticsTest(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertEqual(result.expression, "std(2,4,6)")
         self.assertEqual(result.answer, "1.63299316186")
+
+    def test_solve_sum_query(self):
+        result = solve_summary_query("summe von 2 4 6")
+        self.assertIsNotNone(result)
+        self.assertEqual(result.expression, "sum(2,4,6)")
+        self.assertEqual(result.answer, "12")
+
+    def test_solve_minimum_maximum_and_range_queries(self):
+        cases = [
+            ("minimum von 2 9 4", "min(2,9,4)", "2"),
+            ("maximum von 2 9 4", "max(2,9,4)", "9"),
+            ("spannweite von 2 9 4", "range(2,9,4)", "7"),
+        ]
+        for query, expression, answer in cases:
+            with self.subTest(query=query):
+                result = solve_summary_query(query)
+                self.assertIsNotNone(result)
+                self.assertEqual(result.expression, expression)
+                self.assertEqual(result.answer, answer)
 
 
 if __name__ == "__main__":
