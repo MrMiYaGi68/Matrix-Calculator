@@ -8,12 +8,13 @@ from core.natural_query.types import NaturalQueryResult
 
 
 UNIT_PATTERN = "|".join(re.escape(unit) for unit in sorted(UNIT_FACTORS, key=len, reverse=True))
-CONVERSION_WORD_PATTERN = r"in|zu|nach|als|->|=>|=|-"
+CONVERSION_WORD_PATTERN = r"in|to|auf|zu|nach|als|->|=>|=|-"
 VALUE_PATTERN = r"\d+(?:\.\d+)?"
 
 
 def solve_unit_conversion_query(normalized: str) -> NaturalQueryResult | None:
-    unit_match = _match_value_first(normalized) or _match_value_last(normalized)
+    normalized = re.sub(r"^\s*convert\s+", "", normalized)
+    unit_match = _match_value_first(normalized) or _match_value_last(normalized) or _match_target_first(normalized)
     if not unit_match:
         return None
     value = float(unit_match.group("value"))
@@ -39,5 +40,12 @@ def _match_value_first(normalized: str) -> re.Match[str] | None:
 def _match_value_last(normalized: str) -> re.Match[str] | None:
     return re.search(
         rf"(?P<from>{UNIT_PATTERN})\s*(?:{CONVERSION_WORD_PATTERN})\s*(?P<to>{UNIT_PATTERN})\s*(?P<value>{VALUE_PATTERN})(?![a-zäöüß])",
+        normalized,
+    )
+
+
+def _match_target_first(normalized: str) -> re.Match[str] | None:
+    return re.search(
+        rf"(?P<to>{UNIT_PATTERN})(?:\s+(?:sind|are|ist|is))?\s+(?P<value>{VALUE_PATTERN})\s*(?P<from>{UNIT_PATTERN})(?![a-zäöüß])",
         normalized,
     )
