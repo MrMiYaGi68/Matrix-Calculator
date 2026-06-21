@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
+from PySide6.QtCore import QUrl
 from PySide6.QtWidgets import QApplication
 
 from calculator import MatrixCalculatorWindow
@@ -127,6 +128,37 @@ class SecurityReleaseTest(unittest.TestCase):
 
         with patch("calculator.package_version", return_value="1.5.0"):
             self.assertEqual(window._project_version(), "1.5.0")
+
+    def test_readme_url_uses_local_file_when_available(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            readme_path = Path(tmp) / "README.md"
+            readme_path.write_text("# Matrix Calculator\n", encoding="utf-8")
+            window = MatrixCalculatorWindow.__new__(MatrixCalculatorWindow)
+            window.README_PATH = readme_path
+
+            url = window._readme_url()
+
+            self.assertTrue(url.isLocalFile())
+            self.assertEqual(Path(url.toLocalFile()), readme_path)
+
+    def test_readme_url_falls_back_to_project_page_when_installed_file_is_absent(self):
+        window = MatrixCalculatorWindow.__new__(MatrixCalculatorWindow)
+        window.README_PATH = Path("/tmp/matrix-calculator-missing-readme.md")
+
+        url = window._readme_url()
+
+        self.assertEqual(url, QUrl(window.README_URL))
+
+    def test_open_readme_never_opens_missing_local_file(self):
+        window = MatrixCalculatorWindow.__new__(MatrixCalculatorWindow)
+        window.README_PATH = Path("/tmp/matrix-calculator-missing-readme.md")
+
+        with patch("calculator.QDesktopServices.openUrl") as open_url:
+            window._open_readme()
+
+        opened_url = open_url.call_args.args[0]
+        self.assertFalse(opened_url.isLocalFile())
+        self.assertEqual(opened_url, QUrl(window.README_URL))
 
     def test_load_settings_removes_legacy_openai_api_key(self):
         with tempfile.TemporaryDirectory() as tmp:

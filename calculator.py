@@ -168,6 +168,7 @@ class MatrixCalculatorWindow(QMainWindow):
     README_PATH = PROJECT_ROOT / "README.md"
     CHANGELOG_PATH = PROJECT_ROOT / "CHANGELOG.md"
     PYPROJECT_PATH = PROJECT_ROOT / "pyproject.toml"
+    README_URL = "https://github.com/MrMiYaGi68/Matrix-Calculator/blob/main/README.md"
     AUTO_OPENAI_MODEL_FALLBACK = DEFAULT_OPENAI_MODEL
     COLLAPSED_WINDOW_WIDTH = 780
     COLLAPSED_MINIMUM_WIDTH = 760
@@ -1332,7 +1333,15 @@ class MatrixCalculatorWindow(QMainWindow):
         dialog.about_status_label.show()
 
     def _open_readme(self) -> None:
-        QDesktopServices.openUrl(QUrl.fromLocalFile(str(self.README_PATH)))
+        QDesktopServices.openUrl(self._readme_url())
+
+    def _readme_url(self) -> QUrl:
+        try:
+            if self.README_PATH.is_file():
+                return QUrl.fromLocalFile(str(self.README_PATH))
+        except OSError:
+            pass
+        return QUrl(self.README_URL)
 
     def _build_openai_input(self, query: str) -> str:
         return build_openai_input(
